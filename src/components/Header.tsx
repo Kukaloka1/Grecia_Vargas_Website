@@ -11,8 +11,10 @@ export default function Header(){
   const panelRef = useRef<HTMLDivElement>(null)
   const lang = useLang()
 
+  // Persistencia de tema
   useEffect(()=>{ document.documentElement.dataset.theme = theme; localStorage.setItem('theme', theme) },[theme])
 
+  // Sombra al hacer scroll
   useEffect(()=>{
     const onScroll = () => setScrolled(window.scrollY > 2)
     onScroll()
@@ -20,6 +22,7 @@ export default function Header(){
     return () => window.removeEventListener('scroll', onScroll)
   },[])
 
+  // Cerrar con ESC + focus-trap en panel móvil
   useEffect(()=>{
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -36,6 +39,7 @@ export default function Header(){
     return ()=>document.removeEventListener('keydown', onKey)
   },[open])
 
+  // Bloquear scroll al abrir
   useEffect(()=>{
     document.body.classList.toggle('overflow-hidden', open)
     if (open) {
@@ -56,17 +60,26 @@ export default function Header(){
 
   return (
     <>
+      {/* Skip link accesible */}
       <a href="#home" className="sr-only focus:not-sr-only focus:fixed focus:z-[60] focus:m-2 focus:rounded focus:bg-[--color-primary] focus:px-3 focus:py-2 focus:text-white">
         Skip to content
       </a>
 
-      <header className={`sticky top-0 z-40 border-b border-neutral-200 dark:border-neutral-800 header-blur ${scrolled ? 'shadow-sm' : ''}`}>
+      {/* Header FIXED (siempre visible) */}
+      <header className={`fixed inset-x-0 top-0 z-50 border-b border-neutral-200 dark:border-neutral-800 header-blur ${scrolled ? 'shadow-sm' : ''}`}>
         <div className="header-wrap">
-          <a href="#home" className="flex items-center gap-3 min-w-0">
-            <img src="/images/logo.png" alt="Grecia Vargas" className="h-7 w-auto md:h-8 rounded-sm" loading="eager" decoding="sync" />
-            <span className="hidden sm:inline font-extrabold tracking-tight truncate">Grecia Vargas</span>
+          {/* Logo grande (sin texto al lado) */}
+          <a href="#home" aria-label="Grecia Vargas — Home" className="flex items-center min-w-0">
+            <img
+              src="/images/logo.png"
+              alt="Grecia Vargas • Private Chef"
+              className="h-[56px] w-auto md:h-[60px] lg:h-[64px] rounded-[2px]"
+              loading="eager"
+              decoding="sync"
+            />
           </a>
 
+          {/* Nav desktop (desde lg) */}
           <nav className="hidden lg:flex items-center gap-6" aria-label="Primary">
             {NAV.map(i=> (
               <a key={i.href} href={i.href} className="text-sm opacity-80 hover:opacity-100">{i.label}</a>
@@ -80,6 +93,7 @@ export default function Header(){
             </select>
           </nav>
 
+          {/* Burger (mobile + tablet) */}
           <button
             className="lg:hidden inline-flex items-center justify-center rounded-md p-2 hover:bg-neutral-100 dark:hover:bg-neutral-900"
             aria-label="Open menu"
@@ -91,8 +105,10 @@ export default function Header(){
           </button>
         </div>
 
+        {/* Overlay */}
         {open && <div className="fixed inset-0 z-40 bg-black/50" onClick={()=>setOpen(false)} aria-hidden />}
 
+        {/* Panel móvil */}
         <div
           id="mobile-nav"
           ref={panelRef}
@@ -102,10 +118,9 @@ export default function Header(){
           tabIndex={-1}
         >
           <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <img src="/images/logo.png" alt="" className="h-7 w-auto md:h-8 rounded-sm" />
-              <span className="font-extrabold">Grecia Vargas</span>
-            </div>
+            <a href="#home" aria-label="Grecia Vargas — Home" onClick={()=>setOpen(false)} className="flex items-center">
+              <img src="/images/logo.png" alt="" className="h-[56px] w-auto md:h-[60px] rounded-[2px]" />
+            </a>
             <button aria-label="Close menu" onClick={()=>setOpen(false)} className="rounded-md p-2 hover:bg-neutral-100 dark:hover:bg-neutral-900">
               <X />
             </button>

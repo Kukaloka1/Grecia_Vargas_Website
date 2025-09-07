@@ -64,3 +64,26 @@ body { @apply bg-white text-neutral-900 antialiased; font-family: Inter, Manrope
 
 /* Panel móvil: padding top respetando notch */
 .pt-safe { padding-top: max(1.5rem, env(safe-area-inset-top)); }
+
+/* Override: header más alto para logo grande */
+.header-wrap { height: 4.25rem; }    /* ~68px en móviles */
+@media (min-width: 1024px){ /* lg */
+  .header-wrap { height: 4.5rem; }   /* ~72px en desktop */
+}
+
+/* === Header fijo: variables de altura, padding del body y anclas === */
+:root { --header-h: 80px; }              /* móvil/tablet */
+@media (min-width: 1024px){              /* lg+ */
+  :root { --header-h: 88px; }
+}
+
+/* Empuja el contenido bajo el header fijo */
+body { padding-top: var(--header-h); }
+
+/* La envoltura del header usa la misma altura */
+.header-wrap {
+  height: var(--header-h);
+}
+
+/* Ajusta el offset de las anclas a la altura real del header */
+:target { scroll-margin-top: var(--header-h); }
