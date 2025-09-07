@@ -1,0 +1,3 @@
+Contact: mailto:hello@greciavargas.example
+Expires: 2026-03-06
+Policy: https://example.com/security

@@ -1,0 +1,66 @@
+@import "tailwindcss";
+@theme {
+  --color-primary: #0F0F0F; /* charcoal */
+  --color-accent:  #9BA17B; /* olive */
+}
+
+/* Fuentes (fallback si son dummy) */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter-roman.var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Manrope';
+  src: url('/fonts/Manrope.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root { color-scheme: light dark; }
+html, body, #root { height: 100%; }
+body { @apply bg-white text-neutral-900 antialiased; font-family: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+.dark body { @apply bg-neutral-950 text-neutral-100; }
+
+/* Helpers */
+.container-xl { @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl; } /* clase personalizada, NO usar en @apply */
+.section { @apply py-16 md:py-24; }
+.section-title { @apply text-3xl md:text-4xl font-extrabold tracking-tight; }
+
+/* Botones */
+.btn { @apply inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition; }
+.btn-primary { @apply bg-[--color-primary] text-white hover:opacity-90; }
+.btn-ghost { @apply border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900; }
+
+/* HERO (tres paneles) */
+.hero-grid { @apply grid grid-cols-1 md:grid-cols-[0.35fr_1fr_0.3fr] min-h-[92svh]; }
+.hero-left { @apply bg-neutral-950 text-white flex flex-col justify-between p-6 md:p-8; }
+.hero-center { @apply relative overflow-hidden; }
+.hero-right { @apply bg-white dark:bg-neutral-950 border-l border-neutral-200 dark:border-neutral-800; }
+.hero-bw { filter: grayscale(1) contrast(1.05); }
+.dish-circle { @apply absolute rounded-full shadow-2xl; width: 280px; height: 280px; right: -40px; bottom: -40px; }
+
+/* Nav lateral */
+.side-nav { @apply sticky top-0 h-[100svh] flex flex-col items-start gap-4 p-6; }
+.side-link { @apply text-sm opacity-80 hover:opacity-100 transition; }
+
+/* Anclas sin saltos (offset header) */
+:target { scroll-margin-top: 88px; }
+
+/* --- Header utilities (sin variantes en @apply) --- */
+.header-blur { @apply backdrop-blur bg-white/70; }
+.dark .header-blur { @apply bg-neutral-950/60; }
+
+/* No @apply container-xl aquí: poner utilidades directas */
+.header-wrap {
+  @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl h-16 lg:h-20 flex items-center justify-between;
+  /* Safe areas iOS */
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+
+/* Panel móvil: padding top respetando notch */
+.pt-safe { padding-top: max(1.5rem, env(safe-area-inset-top)); }
