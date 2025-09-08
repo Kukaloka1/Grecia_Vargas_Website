@@ -112,3 +112,12 @@ img[alt="Grecia Vargas"] {
 @media (min-width: 1536px) { /* 2xl */
   img[alt="Grecia Vargas"] { height: 280px; }
 }
+
+/* === HowItWorks: número animado (count + pop) === */
+.step-num { @apply inline-block font-extrabold text-3xl md:text-4xl tracking-wider; }
+@keyframes step-pop {
+  0% { transform: scale(0.7); opacity: 0; filter: blur(2px); }
+  60% { transform: scale(1.08); opacity: 1; filter: blur(0.5px); }
+  100% { transform: scale(1); opacity: 1; filter: blur(0); }
+}
+.anim-count-pop { animation: step-pop 420ms cubic-bezier(.2,.9,.25,1) both; }

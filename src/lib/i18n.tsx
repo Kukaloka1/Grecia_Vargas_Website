@@ -1,9 +1,11 @@
 import { useSyncExternalStore } from 'react'
-type Lang = 'en' | 'es'
-const DEFAULT: Lang = (localStorage.getItem('lang') as Lang) || 'en'
+const SUPPORTED = ['en','es'] as const
+type Lang = typeof SUPPORTED[number]
+function coerceLang(x: any): Lang { return (SUPPORTED as readonly string[]).includes(x) ? x as Lang : 'en' }
+const DEFAULT: Lang = coerceLang(localStorage.getItem('lang'))
 let current: Lang = DEFAULT
 const listeners = new Set<() => void>()
-export function setLang(l: Lang){ current = l; localStorage.setItem('lang', l); listeners.forEach(cb=>cb()) }
+export function setLang(l: any){ current = coerceLang(l); localStorage.setItem('lang', current); listeners.forEach(cb=>cb()) }
 export function useLang(){ return useSyncExternalStore(sub=>{ listeners.add(sub); return ()=>listeners.delete(sub) }, ()=>current, ()=>current) }
 
 const dict: Record<Lang, Record<string,string>> = {
@@ -79,7 +81,55 @@ const dict: Record<Lang, Record<string,string>> = {
 
     // Footer
     'footer.powered': 'powered by Bittech Network',
-    'footer.tagline': 'Crafted with seasonal ingredients, global perspective & impeccable service.'
+    'footer.tagline': 'Crafted with seasonal ingredients, global perspective & impeccable service.',
+
+    // How it works
+    'how.title': 'How it works',
+    'how.subtitle': 'Brief → Bespoke menu → Sourcing → Service → Cleanup',
+    'how.lead': 'Precision planning, Mediterranean soul and a global point of view. From yacht galleys to private studios, we design dinners that feel effortless — and unforgettable.',
+    'how.step.brief': 'Brief',
+    'how.step.menu': 'Menu',
+    'how.step.sourcing': 'Sourcing',
+    'how.step.service': 'Service',
+    'how.step.cleanup': 'Cleanup',
+    'how.step.brief.blurb': 'We listen first: date, location, guests, dietary notes and the feeling you want to create.',
+    'how.step.menu.blurb': 'Bespoke tasting menu aligned with seasonality and your preferences — elegant pacing, course by course.',
+    'how.step.sourcing.blurb': 'Product-first sourcing from trusted markets and artisans. Fresh, local, traceable.',
+    'how.step.service.blurb': 'Multi-sensory hospitality: music, light and cadence that elevate flavor without stealing the scene.',
+    'how.step.cleanup.blurb': 'Spotless finish. Your home or venue returns to calm — the memory stays.',
+    'how.ribbon.travel': 'We travel worldwide with advance notice — subject to calendar and logistics.',
+    'how.ribbon.fomo': 'Limited dates each month. Early booking secures preferred dates and sourcing.',
+
+    // Services
+    'services.title': 'Services',
+    'services.subtitle': 'Studio private dining · Yacht chef · Villas & intimate events',
+    'services.lead': 'From Barcelona to the Balearics and anywhere your celebration takes you. Studio dinners, yacht galleys and villas worldwide, always product-first and elegantly paced.',
+    'services.tag.fullservice': 'Full service',
+    'services.tag.product': 'Product-first',
+    'services.tag.wellness': 'Wellness options',
+    'services.tag.styling': 'Table styling',
+    'services.tag.languages': 'ES / EN',
+    'services.tag.pairings': 'Wine pairings',
+    'services.badge.most': 'Most requested',
+    'services.cards.studio.title': 'Studio Private Dining',
+    'services.cards.studio.desc': 'Tasting menu at a private studio in central Barcelona — intimate, paced and beautifully staged.',
+    'services.cards.studio.b1': '6–14 guests (ideal)',
+    'services.cards.studio.b2': 'Bespoke tasting menu',
+    'services.cards.studio.b3': 'Candlelight & curated sound',
+    'services.cards.yacht.title': 'Yacht Chef',
+    'services.cards.yacht.desc': 'Seasonal market cuisine on board for guests & crew — discreet service from sunrise to late.',
+    'services.cards.yacht.b1': 'Local sourcing at each port',
+    'services.cards.yacht.b2': 'Breakfast to late service',
+    'services.cards.yacht.b3': 'Wellness-minded options',
+    'services.cards.villas.title': 'Villas & Events',
+    'services.cards.villas.desc': 'Private homes, villas and special celebrations — live finishing, warm hosting and immaculate plating.',
+    'services.cards.villas.b1': 'Full service & cleanup',
+    'services.cards.villas.b2': 'Table styling & rentals',
+    'services.cards.villas.b3': 'Menu tasting on request',
+    'services.ribbon.1': 'Barcelona • Balearics • Côte d’Azur',
+    'services.ribbon.2': 'Worldwide travel with notice',
+    'services.ribbon.3': 'ES / EN',
+    'services.ribbon.4': 'Limited dates each month'
   },
   es: {
     'brand.title': 'Grecia Vargas',
@@ -153,7 +203,55 @@ const dict: Record<Lang, Record<string,string>> = {
 
     // Footer
     'footer.powered': 'powered by Bittech Network',
-    'footer.tagline': 'Diseñado con ingredientes de temporada, visión global y un servicio impecable.'
+    'footer.tagline': 'Diseñado con ingredientes de temporada, visión global y un servicio impecable.',
+
+    // Cómo funciona
+    'how.title': 'Cómo funciona',
+    'how.subtitle': 'Brief → Menú a medida → Sourcing → Servicio → Limpieza',
+    'how.lead': 'Planificación precisa, alma mediterránea y mirada global. De cocinas en yate a estudios privados, diseñamos cenas que se sienten fluidas — e inolvidables.',
+    'how.step.brief': 'Brief',
+    'how.step.menu': 'Menú',
+    'how.step.sourcing': 'Sourcing',
+    'how.step.service': 'Servicio',
+    'how.step.cleanup': 'Limpieza',
+    'how.step.brief.blurb': 'Primero escuchamos: fecha, lugar, invitados, notas dietéticas y la atmósfera que quieres crear.',
+    'how.step.menu.blurb': 'Menú degustación a medida alineado con la temporada y tus preferencias — ritmo elegante, pase a pase.',
+    'how.step.sourcing.blurb': 'Selección de producto con prioridad absoluta al origen: mercados y artesanos de confianza.',
+    'how.step.service.blurb': 'Hospitalidad multisensorial: música, luz y cadencia que elevan el sabor sin robar la escena.',
+    'how.step.cleanup.blurb': 'Cierre impecable. Tu casa o venue vuelve a la calma — el recuerdo permanece.',
+    'how.ribbon.travel': 'Viajamos a cualquier parte del mundo con antelación — sujeto a calendario y logística.',
+    'how.ribbon.fomo': 'Fechas limitadas cada mes. Reservar con tiempo asegura fechas preferidas y mejor sourcing.',
+
+    // Servicios
+    'services.title': 'Servicios',
+    'services.subtitle': 'Cenas en estudio · Yacht chef · Villas & eventos íntimos',
+    'services.lead': 'De Barcelona a Baleares y adonde te lleve la celebración. Estudio, yates y villas en todo el mundo, siempre con producto primero y un ritmo elegante.',
+    'services.tag.fullservice': 'Servicio completo',
+    'services.tag.product': 'Producto primero',
+    'services.tag.wellness': 'Opciones wellness',
+    'services.tag.styling': 'Estilismo de mesa',
+    'services.tag.languages': 'ES / EN',
+    'services.tag.pairings': 'Maridajes',
+    'services.badge.most': 'Más demandado',
+    'services.cards.studio.title': 'Studio Private Dining',
+    'services.cards.studio.desc': 'Menú degustación en estudio privado en el centro de Barcelona — íntimo, con ritmo y mise-en-scène impecable.',
+    'services.cards.studio.b1': '6–14 comensales (ideal)',
+    'services.cards.studio.b2': 'Menú degustación a medida',
+    'services.cards.studio.b3': 'Velas y sonido curado',
+    'services.cards.yacht.title': 'Yacht Chef',
+    'services.cards.yacht.desc': 'Cocina de mercado a bordo para invitados y tripulación — servicio discreto de amanecer a noche.',
+    'services.cards.yacht.b1': 'Abastecimiento local en cada puerto',
+    'services.cards.yacht.b2': 'Desde desayunos hasta tarde',
+    'services.cards.yacht.b3': 'Opciones wellness',
+    'services.cards.villas.title': 'Villas & Events',
+    'services.cards.villas.desc': 'Residencias privadas, villas y celebraciones especiales — acabados en vivo, hospitalidad cálida y emplatado impecable.',
+    'services.cards.villas.b1': 'Servicio completo & limpieza',
+    'services.cards.villas.b2': 'Estilismo de mesa & rentals',
+    'services.cards.villas.b3': 'Tasting de menú (bajo solicitud)',
+    'services.ribbon.1': 'Barcelona • Baleares • Côte d’Azur',
+    'services.ribbon.2': 'Viaje mundial con aviso',
+    'services.ribbon.3': 'ES / EN',
+    'services.ribbon.4': 'Fechas limitadas por mes'
   }
 }
-export function t(key: string, lang: Lang){ return dict[lang][key] || key }
+export function t(key: string, lang: any){ const table = dict[coerceLang(lang)]; return table[key] ?? key }
