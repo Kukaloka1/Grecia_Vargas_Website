@@ -75,7 +75,11 @@ const dict: Record<Lang, Record<string,string>> = {
 
     'cta.title': "Let's craft your menu",
     'cta.subtitle': 'Tell us your date, location, dietary preferences and guest count.',
-    'cta.button': 'Request proposal'
+    'cta.button': 'Request proposal',
+
+    // Footer
+    'footer.powered': 'powered by Bittech Network',
+    'footer.tagline': 'Crafted with seasonal ingredients, global perspective & impeccable service.'
   },
   es: {
     'brand.title': 'Grecia Vargas',
@@ -145,7 +149,11 @@ const dict: Record<Lang, Record<string,string>> = {
 
     'cta.title': 'Diseñemos tu menú',
     'cta.subtitle': 'Cuéntanos fecha, lugar, preferencias alimentarias y número de comensales.',
-    'cta.button': 'Solicitar propuesta'
+    'cta.button': 'Solicitar propuesta',
+
+    // Footer
+    'footer.powered': 'powered by Bittech Network',
+    'footer.tagline': 'Diseñado con ingredientes de temporada, visión global y un servicio impecable.'
   }
 }
 export function t(key: string, lang: Lang){ return dict[lang][key] || key }

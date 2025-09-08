@@ -91,3 +91,24 @@ body { padding-top: var(--header-h); }
 /* Botón tamaño grande y variante WhatsApp */
 .btn-lg { @apply px-6 py-3.5 text-base; }
 .btn-whatsapp { @apply bg-[#25D366] text-white hover:opacity-90; }
+
+/* Forzar tamaños de logo de Grecia por breakpoints */
+img[alt="Grecia Vargas"] {
+  height: 120px;
+}
+
+@media (min-width: 640px) { /* sm */
+  img[alt="Grecia Vargas"] { height: 140px; }
+}
+@media (min-width: 768px) { /* md */
+  img[alt="Grecia Vargas"] { height: 160px; }
+}
+@media (min-width: 1024px) { /* lg */
+  img[alt="Grecia Vargas"] { height: 200px; }
+}
+@media (min-width: 1280px) { /* xl */
+  img[alt="Grecia Vargas"] { height: 240px; }
+}
+@media (min-width: 1536px) { /* 2xl */
+  img[alt="Grecia Vargas"] { height: 280px; }
+}

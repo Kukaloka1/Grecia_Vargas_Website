@@ -24,7 +24,7 @@ export default function Hero(){
       <div className="hero-center">
         <img src="/images/grecia/1.webp" alt="Grecia plating" className="h-full w-full object-cover hero-bw" />
         <div className="dish-circle overflow-hidden" aria-hidden>
-          <img src="/images/grecia/3.webp" alt="Signature dish" className="h-full w-full object-cover" />
+          <img src="/images/grecia/logo1.png" alt="Signature dish" className="h-full w-full object-cover" />
         </div>
       </div>
       {/* Panel derecho: nav vertical */}
