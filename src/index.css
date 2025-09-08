@@ -97,18 +97,7 @@ header.fixed {
   contain: paint; /* limita el repintado al header */
 }
 
-/* Blur optimizado (reduce overdraw) */
-@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
-  header.backdrop-blur {
-    -webkit-backdrop-filter: saturate(160%) blur(10px);
-    backdrop-filter: saturate(160%) blur(10px);
-    background-color: rgb(10 10 10 / 0.45);
-  }
-}
-/* Fallback sólido */
-@supports not ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
-  header.backdrop-blur { background-color: rgb(10 10 10 / 0.92); }
-}
+
 
 /* ===== Forzar tamaños de logo por breakpoints (si se usa ese alt) ===== */
 img[alt="Grecia Vargas"] { height: 120px; }
@@ -128,6 +117,7 @@ img[alt="Grecia Vargas"] { height: 120px; }
 .anim-count-pop { animation: step-pop 420ms cubic-bezier(.2,.9,.25,1) both; }
 
 /* ===== GALLERY: SIEMPRE ESTÁTICO Y VISIBLE (unificado) ===== */
+/* Desactiva animaciones/transiciones en la galería para cero jank */
 #gallery, #gallery * {
   animation: none !important;
   transition: none !important;
@@ -135,7 +125,7 @@ img[alt="Grecia Vargas"] { height: 120px; }
   opacity: 1 !important;
 }
 
-/* Evita virtualización / “apagado” fuera de viewport */
+/* Evita virtualización / apagado fuera de viewport */
 #gallery {
   content-visibility: visible !important;
   contain: none !important;
@@ -144,14 +134,6 @@ img[alt="Grecia Vargas"] { height: 120px; }
   perspective: none !important;
 }
 
-/* Neutraliza cualquier resto de AOS dentro de #gallery */
-#gallery [data-aos],
-#gallery [data-aos] * {
-  animation: none !important;
-  transition: none !important;
-  transform: none !important;
-  opacity: 1 !important;
-}
 
 /* Fuerza #home a 2 columnas reales (por si .hero-grid quedó en algún sitio) */
 #home { grid-template-columns: 1fr; }
@@ -161,3 +143,4 @@ img[alt="Grecia Vargas"] { height: 120px; }
 
 /* Asegura B/N en la foto del hero en todos los tamaños */
 .hero-bw { filter: grayscale(1) contrast(1.05) !important; }
+
