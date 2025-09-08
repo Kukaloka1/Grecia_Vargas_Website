@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Menu, X, Info, Sparkles, Briefcase, BookOpenCheck, Image, Mail } from 'lucide-react'
+import { Menu, X, Info, Sparkles, Briefcase, BookOpenCheck, Image, Mail, Instagram } from 'lucide-react'
 import { setLang, useLang, t } from '../lib/i18n'
 import { useScrollSpy } from '../hooks/useScrollSpy'
 
@@ -19,7 +19,7 @@ function smoothScrollToId(hash: string){
   window.scrollTo({ top, behavior: 'smooth' })
 }
 
-/** WhatsApp icon (SVG, hereda currentColor) */
+/** Icono WhatsApp (SVG, hereda currentColor) */
 function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
@@ -113,7 +113,7 @@ export default function Header(){
         Skip to content
       </a>
 
-      {/* ===== HEADER (el panel YA NO va dentro de header) ===== */}
+      {/* ===== HEADER (panel y overlay van FUERA) ===== */}
       <header className={`fixed inset-x-0 top-0 z-[900] border-b border-neutral-800 backdrop-blur bg-neutral-950/70 text-white ${scrolled ? 'shadow-sm ring-1 ring-white/10' : ''}`}>
         <div className="header-wrap">
           {/* Logo */}
@@ -226,6 +226,7 @@ export default function Header(){
           </select>
         </div>
 
+        {/* CTAs alineadas y consistentes */}
         <a
           href="#contact"
           onClick={onNavClick('#contact')}
@@ -237,15 +238,28 @@ export default function Header(){
         <a
           href="https://wa.me/0000000000"
           target="_blank"
-          rel="noopener"
+          rel="noopener noreferrer"
           className="mt-3 btn btn-whatsapp w-full inline-flex items-center justify-center gap-2 text-center"
           aria-label="WhatsApp"
         >
           <WhatsAppIcon className="h-5 w-5" />
           <span>{t('hero.cta.whatsapp', lang)}</span>
         </a>
+
+        {/* Instagram — pro, moderno y en armonía */}
+        <a
+          href="https://instagram.com/chefgreciavargas"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 w-full inline-flex items-center justify-center gap-2 text-center text-white rounded-xl px-5 py-3 text-sm font-semibold transition bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:opacity-90"
+          aria-label="Instagram"
+        >
+          <Instagram className="h-5 w-5" />
+          <span>@chefgreciavargas</span>
+        </a>
       </div>
     </>
   )
 }
+
 

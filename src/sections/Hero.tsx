@@ -2,6 +2,7 @@ import Button from '../components/Button'
 import { useLang, t } from '../lib/i18n'
 import { useEffect } from 'react'
 import { enableSmoothAnchors } from '../lib/scroll'
+import { Instagram } from 'lucide-react' // IG icon
 
 export default function Hero() {
   const lang = useLang()
@@ -16,8 +17,9 @@ export default function Hero() {
         'lg:[grid-template-columns:0.38fr_1fr]',
         'xl:[grid-template-columns:0.36fr_1fr]',
         '-mt-[var(--header-h)]',
-        'min-h-[calc(100svh-var(--header-h))]',
-        'py-0 overflow-hidden',
+        // ⬇️ en móviles NO forzamos altura ni ocultamos overflow
+        'md:min-h-[calc(100svh-var(--header-h))]',
+        'py-0 md:overflow-hidden',
       ].join(' ')}
     >
       {/* Panel izquierdo (texto) */}
@@ -72,6 +74,17 @@ export default function Hero() {
           <Button variant="ghost" href="https://wa.me/0000000000">
             {t('hero.cta.whatsapp', lang)}
           </Button>
+          {/* Instagram (md+) */}
+          <Button
+            variant="ghost"
+            href="https://instagram.com/chefgreciavargas"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2"
+          >
+            <Instagram className="h-4 w-4" />
+            <span>@chefgreciavargas</span>
+          </Button>
         </div>
       </div>
 
@@ -88,21 +101,36 @@ export default function Hero() {
         <div className="dish-circle overflow-hidden pointer-events-none" aria-hidden />
       </div>
 
-      {/* CTAs móviles: SIEMPRE debajo de la foto (< md) y NEGROS */}
-      <div className="flex md:hidden justify-center gap-3 pt-6">
-        <Button
-          href="#contact"
-          className="!bg-black !text-white !border-transparent hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-        >
-          {t('hero.cta.availability', lang)}
-        </Button>
-        <Button
-          variant="ghost"
-          href="https://wa.me/0000000000"
-          className="!bg-black !text-white !border-transparent hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-        >
-          {t('hero.cta.whatsapp', lang)}
-        </Button>
+      {/* CTAs móviles: debajo de la foto, negros, con wrap seguro */}
+      <div className="md:hidden px-4 pb-8">
+        <div className="flex flex-wrap justify-center gap-3 pt-6">
+          <Button
+            href="#contact"
+            className="!bg-black !text-white !border-transparent hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 flex-1 min-w-[140px]"
+          >
+            {t('hero.cta.availability', lang)}
+          </Button>
+
+          <Button
+            variant="ghost"
+            href="https://wa.me/0000000000"
+            className="!bg-black !text-white !border-transparent hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 flex-1 min-w-[140px]"
+          >
+            {t('hero.cta.whatsapp', lang)}
+          </Button>
+
+          {/* Instagram móvil (negro, alineado y con wrap) */}
+          <Button
+            variant="ghost"
+            href="https://instagram.com/chefgreciavargas"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="!bg-black !text-white !border-transparent hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 inline-flex items-center gap-2 flex-1 min-w-[140px]"
+          >
+            <Instagram className="h-4 w-4" />
+            <span>Instagram</span>
+          </Button>
+        </div>
       </div>
     </section>
   )
