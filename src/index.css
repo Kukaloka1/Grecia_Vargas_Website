@@ -141,6 +141,5 @@ img[alt="Grecia Vargas"] { height: 120px; }
 @media (min-width: 1024px){ #home { grid-template-columns: 0.38fr 1fr; } }
 @media (min-width: 1280px){ #home { grid-template-columns: 0.36fr 1fr; } }
 
-/* Asegura B/N en la foto del hero en todos los tamaños */
-.hero-bw { filter: grayscale(1) contrast(1.05) !important; }
+
 
