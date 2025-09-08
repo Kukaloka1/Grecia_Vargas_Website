@@ -1,21 +1,10 @@
-import { useEffect, useRef } from 'react'; // Añadido useRef
-import Button from '../components/Button';
 import { useLang, t } from '../lib/i18n';
-import { enableSmoothAnchors } from '../lib/scroll';
+import Button from '../components/Button';
 import { Instagram } from 'lucide-react';
 import SmartImage from '../components/SmartImage';
 
 export default function Hero() {
   const lang = useLang();
-  const cleanupRef = useRef<(() => void) | null>(null);
-
-  // Inicializa smooth scrolling con limpieza
-  useEffect(() => {
-    cleanupRef.current = enableSmoothAnchors();
-    return () => {
-      cleanupRef.current?.();
-    };
-  }, []);
 
   return (
     <section
@@ -98,7 +87,7 @@ export default function Hero() {
       </div>
 
       {/* Foto */}
-      <div className="hero-center relative">
+      <div className="hero-center relative min-h-[300px]">
         <SmartImage
           src="/images/grecia/1.webp"
           alt="Grecia plating"
@@ -108,8 +97,8 @@ export default function Hero() {
           eager={true}
           priority="high"
           sizes="(max-width: 768px) 100vw, 50vw"
-          responsive={true}
-          onError={() => console.error('Error cargando imagen hero')}
+          responsive={false} // Desactivamos srcSet para simplificar
+          onError={(event) => console.error('Error cargando imagen hero:', event, 'Ruta:', '/images/grecia/1.webp')}
         />
         <div className="dish-circle overflow-hidden pointer-events-none" aria-hidden />
       </div>

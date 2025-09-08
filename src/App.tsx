@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react';
 import Header from './components/Header';
 import Hero from './sections/Hero';
 import DeferSection from './components/DeferSection';
+import { enableSmoothAnchors } from './lib/scroll';
 
 export default function App() {
   const aosCleanupRef = useRef<(() => void) | null>(null);
-  const prefetchTimeoutRef = useRef<number | null>(null); // Cambiado de NodeJS.Timeout a number
+  const prefetchTimeoutRef = useRef<number | null>(null);
 
   // Inicializa AOS con limpieza
   useEffect(() => {
@@ -40,6 +41,12 @@ export default function App() {
     }
   }, []);
 
+  // Inicializa smooth scrolling
+  useEffect(() => {
+    const cleanup = enableSmoothAnchors();
+    return cleanup;
+  }, []);
+
   // Prefetching optimizado
   useEffect(() => {
     const importers = [
@@ -67,13 +74,13 @@ export default function App() {
       const step = () => {
         if (i >= importers.length) return;
         importers[i++]().catch((err) => console.warn(`Error prefetching sección ${i}:`, err));
-        prefetchTimeoutRef.current = setTimeout(step, 300); // Aumentado para menos presión
+        prefetchTimeoutRef.current = setTimeout(step, 300);
       };
       step();
     };
 
     if ('requestIdleCallback' in window) {
-      const idleId = window.requestIdleCallback(run, { timeout: 2500 }); // Aumentado
+      const idleId = window.requestIdleCallback(run, { timeout: 2500 });
       return () => {
         window.cancelIdleCallback(idleId);
         if (prefetchTimeoutRef.current) {
@@ -81,11 +88,11 @@ export default function App() {
         }
       };
     } else {
-      const t = setTimeout(run, 1000); // Aumentado
+      const t = setTimeout(run, 1000);
       return () => {
         clearTimeout(t);
         if (prefetchTimeoutRef.current) {
-          clearTimeout(t);
+          clearTimeout(prefetchTimeoutRef.current);
         }
       };
     }
