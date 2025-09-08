@@ -1,10 +1,11 @@
 @import "tailwindcss";
+
 @theme {
   --color-primary: #0F0F0F; /* charcoal */
   --color-accent:  #9BA17B; /* olive */
 }
 
-/* Fuentes (fallback si son dummy) */
+/* ===== Fuentes (fallback si son dummy) ===== */
 @font-face {
   font-family: 'Inter';
   src: url('/fonts/Inter-roman.var.woff2') format('woff2');
@@ -20,22 +21,41 @@
   font-display: swap;
 }
 
-:root { color-scheme: light dark; }
+/* ===== Vars y baseline ===== */
+:root {
+  color-scheme: light dark;
+  /* Header fijo: altura base (móvil/tablet) */
+  --header-h: 80px;
+}
+@media (min-width: 1024px){ /* lg+ */
+  :root { --header-h: 88px; }
+}
+
 html, body, #root { height: 100%; }
-body { @apply bg-white text-neutral-900 antialiased; font-family: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+/* Evita “doble smooth”: el scroll suave lo manejas en JS */
+html { scroll-behavior: auto; }
+
+body {
+  @apply bg-white text-neutral-900 antialiased;
+  font-family: Inter, Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  /* Empuja el contenido bajo el header fijo */
+  padding-top: var(--header-h);
+}
 .dark body { @apply bg-neutral-950 text-neutral-100; }
 
-/* Helpers */
+/* ===== Helpers ===== */
 .container-xl { @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl; } /* clase personalizada, NO usar en @apply */
 .section { @apply py-16 md:py-24; }
 .section-title { @apply text-3xl md:text-4xl font-extrabold tracking-tight; }
 
-/* Botones */
+/* ===== Botones ===== */
 .btn { @apply inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition; }
 .btn-primary { @apply bg-[--color-primary] text-white hover:opacity-90; }
 .btn-ghost { @apply border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-900; }
+.btn-lg { @apply px-6 py-3.5 text-base; }
+.btn-whatsapp { @apply bg-[#25D366] text-white hover:opacity-90; }
 
-/* HERO (tres paneles) */
+/* ===== HERO (tres paneles) ===== */
 .hero-grid { @apply grid grid-cols-1 md:grid-cols-[0.35fr_1fr_0.3fr] min-h-[92svh]; }
 .hero-left { @apply bg-neutral-950 text-white flex flex-col justify-between p-6 md:p-8; }
 .hero-center { @apply relative overflow-hidden; }
@@ -43,77 +63,62 @@ body { @apply bg-white text-neutral-900 antialiased; font-family: Inter, Manrope
 .hero-bw { filter: grayscale(1) contrast(1.05); }
 .dish-circle { @apply absolute rounded-full shadow-2xl; width: 280px; height: 280px; right: -40px; bottom: -40px; }
 
-/* Nav lateral */
+
+
+/* ===== Nav lateral ===== */
 .side-nav { @apply sticky top-0 h-[100svh] flex flex-col items-start gap-4 p-6; }
 .side-link { @apply text-sm opacity-80 hover:opacity-100 transition; }
 
-/* Anclas sin saltos (offset header) */
-:target { scroll-margin-top: 88px; }
+/* ===== Anclas sin saltos (offset header) ===== */
+:target { scroll-margin-top: var(--header-h); }
 
-/* --- Header utilities (sin variantes en @apply) --- */
+/* ===== Header utilities ===== */
 .header-blur { @apply backdrop-blur bg-white/70; }
 .dark .header-blur { @apply bg-neutral-950/60; }
 
-/* No @apply container-xl aquí: poner utilidades directas */
+/* No @apply container-xl aquí: utilidades directas + safe areas */
 .header-wrap {
   @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl h-16 lg:h-20 flex items-center justify-between;
   /* Safe areas iOS */
   padding-left: max(1rem, env(safe-area-inset-left));
   padding-right: max(1rem, env(safe-area-inset-right));
+  /* Usa la misma altura que la var del header */
+  height: var(--header-h);
 }
 
 /* Panel móvil: padding top respetando notch */
 .pt-safe { padding-top: max(1.5rem, env(safe-area-inset-top)); }
 
-/* Override: header más alto para logo grande */
-.header-wrap { height: 4.25rem; }    /* ~68px en móviles */
-@media (min-width: 1024px){ /* lg */
-  .header-wrap { height: 4.5rem; }   /* ~72px en desktop */
+/* ===== PERF: Header fijo en su propia capa ===== */
+header.fixed {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  contain: paint; /* limita el repintado al header */
 }
 
-/* === Header fijo: variables de altura, padding del body y anclas === */
-:root { --header-h: 80px; }              /* móvil/tablet */
-@media (min-width: 1024px){              /* lg+ */
-  :root { --header-h: 88px; }
+/* Blur optimizado (reduce overdraw) */
+@supports ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+  header.backdrop-blur {
+    -webkit-backdrop-filter: saturate(160%) blur(10px);
+    backdrop-filter: saturate(160%) blur(10px);
+    background-color: rgb(10 10 10 / 0.45);
+  }
+}
+/* Fallback sólido */
+@supports not ((-webkit-backdrop-filter: blur(8px)) or (backdrop-filter: blur(8px))) {
+  header.backdrop-blur { background-color: rgb(10 10 10 / 0.92); }
 }
 
-/* Empuja el contenido bajo el header fijo */
-body { padding-top: var(--header-h); }
+/* ===== Forzar tamaños de logo por breakpoints (si se usa ese alt) ===== */
+img[alt="Grecia Vargas"] { height: 120px; }
+@media (min-width: 640px) { img[alt="Grecia Vargas"] { height: 140px; } }
+@media (min-width: 768px) { img[alt="Grecia Vargas"] { height: 160px; } }
+@media (min-width: 1024px){ img[alt="Grecia Vargas"] { height: 200px; } }
+@media (min-width: 1280px){ img[alt="Grecia Vargas"] { height: 240px; } }
+@media (min-width: 1536px){ img[alt="Grecia Vargas"] { height: 280px; } }
 
-/* La envoltura del header usa la misma altura */
-.header-wrap {
-  height: var(--header-h);
-}
-
-/* Ajusta el offset de las anclas a la altura real del header */
-:target { scroll-margin-top: var(--header-h); }
-
-/* Botón tamaño grande y variante WhatsApp */
-.btn-lg { @apply px-6 py-3.5 text-base; }
-.btn-whatsapp { @apply bg-[#25D366] text-white hover:opacity-90; }
-
-/* Forzar tamaños de logo de Grecia por breakpoints */
-img[alt="Grecia Vargas"] {
-  height: 120px;
-}
-
-@media (min-width: 640px) { /* sm */
-  img[alt="Grecia Vargas"] { height: 140px; }
-}
-@media (min-width: 768px) { /* md */
-  img[alt="Grecia Vargas"] { height: 160px; }
-}
-@media (min-width: 1024px) { /* lg */
-  img[alt="Grecia Vargas"] { height: 200px; }
-}
-@media (min-width: 1280px) { /* xl */
-  img[alt="Grecia Vargas"] { height: 240px; }
-}
-@media (min-width: 1536px) { /* 2xl */
-  img[alt="Grecia Vargas"] { height: 280px; }
-}
-
-/* === HowItWorks: número animado (count + pop) === */
+/* ===== HowItWorks: número animado (count + pop) ===== */
 .step-num { @apply inline-block font-extrabold text-3xl md:text-4xl tracking-wider; }
 @keyframes step-pop {
   0% { transform: scale(0.7); opacity: 0; filter: blur(2px); }
@@ -121,3 +126,38 @@ img[alt="Grecia Vargas"] {
   100% { transform: scale(1); opacity: 1; filter: blur(0); }
 }
 .anim-count-pop { animation: step-pop 420ms cubic-bezier(.2,.9,.25,1) both; }
+
+/* ===== GALLERY: SIEMPRE ESTÁTICO Y VISIBLE (unificado) ===== */
+#gallery, #gallery * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* Evita virtualización / “apagado” fuera de viewport */
+#gallery {
+  content-visibility: visible !important;
+  contain: none !important;
+  will-change: auto !important;
+  filter: none !important;
+  perspective: none !important;
+}
+
+/* Neutraliza cualquier resto de AOS dentro de #gallery */
+#gallery [data-aos],
+#gallery [data-aos] * {
+  animation: none !important;
+  transition: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* Fuerza #home a 2 columnas reales (por si .hero-grid quedó en algún sitio) */
+#home { grid-template-columns: 1fr; }
+@media (min-width: 768px){  #home { grid-template-columns: 0.42fr 1fr; } }
+@media (min-width: 1024px){ #home { grid-template-columns: 0.38fr 1fr; } }
+@media (min-width: 1280px){ #home { grid-template-columns: 0.36fr 1fr; } }
+
+/* Asegura B/N en la foto del hero en todos los tamaños */
+.hero-bw { filter: grayscale(1) contrast(1.05) !important; }

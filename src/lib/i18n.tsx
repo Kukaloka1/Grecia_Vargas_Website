@@ -13,7 +13,11 @@ const dict: Record<Lang, Record<string,string>> = {
     'brand.title': 'Grecia Vargas',
     'brand.role': 'Private Chef',
 
+    // === Title split en dos líneas ===
     'hero.title': 'Mediterranean elegance, crafted for you',
+    'hero.title.top': 'Mediterranean elegance, crafted',
+    'hero.title.bottom': 'for you',
+
     'hero.subtitle': 'Seasonal, local & elegant cuisine for yachts, villas and intimate celebrations.',
     'hero.cta.availability': 'Check availability',
     'hero.cta.whatsapp': 'WhatsApp',
@@ -131,6 +135,8 @@ const dict: Record<Lang, Record<string,string>> = {
     'services.ribbon.3': 'ES / EN',
     'services.ribbon.4': 'Limited dates each month'
   },
+
+  // ⬇️ Español: SIN CAMBIOS
   es: {
     'brand.title': 'Grecia Vargas',
     'brand.role': 'Chef Privada',

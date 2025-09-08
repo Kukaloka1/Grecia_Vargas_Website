@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
-import { Menu, X, Moon, Sun, Info, Sparkles, Briefcase, BookOpenCheck, Image, Mail } from 'lucide-react'
+import { Menu, X, Info, Sparkles, Briefcase, BookOpenCheck, Image, Mail } from 'lucide-react'
 import { setLang, useLang, t } from '../lib/i18n'
+import { useScrollSpy } from '../hooks/useScrollSpy'
 
 const FOCUSABLE = 'a, button, select, input, textarea, [tabindex]:not([tabindex="-1"])'
 
@@ -18,23 +19,26 @@ function smoothScrollToId(hash: string){
   window.scrollTo({ top, behavior: 'smooth' })
 }
 
+/** WhatsApp icon (SVG, hereda currentColor) */
+function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...props}>
+      <path d="M20.52 3.48A11.7 11.7 0 0012 0C5.37 0 0 5.37 0 12c0 2.12.55 4.1 1.51 5.83L0 24l6.32-1.64A11.92 11.92 0 0012 24c6.63 0 12-5.37 12-12 0-3.2-1.25-6.22-3.48-8.52zM12 22a9.9 9.9 0 01-5.06-1.37l-.36-.21-3.75.97 1-3.65-.24-.37A9.91 9.91 0 1122 12c0 5.52-4.48 10-10 10zm5.23-7.04c-.29-.15-1.71-.84-1.98-.93-.27-.1-.47-.15-.67.15-.2.31-.77.93-.95 1.12-.17.2-.35.22-.64.07-.29-.15-1.24-.46-2.36-1.46-.87-.77-1.45-1.72-1.62-2.01-.17-.29-.02-.45.13-.6.13-.13.29-.35.44-.52.15-.17.2-.29.31-.49.1-.2.05-.37-.02-.52-.07-.15-.67-1.61-.92-2.2-.24-.58-.49-.5-.67-.51l-.57-.01c-.2 0-.52.07-.79.37-.27.31-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.11 3.22 5.1 4.52.71.31 1.27.49 1.71.63.72.23 1.38.2 1.9.12.58-.09 1.71-.7 1.95-1.37.24-.67.24-1.25.17-1.37-.07-.12-.27-.2-.56-.35z"/>
+    </svg>
+  )
+}
+
 export default function Header(){
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
-  const [theme, setTheme] = useState<'light'|'dark'>((localStorage.getItem('theme') as any) || 'light')
   const panelRef = useRef<HTMLDivElement>(null)
   const lang = useLang()
 
-  // Leer ?lang= de la URL al cargar (URL > localStorage)
-  useEffect(()=>{
-    const urlLang = new URLSearchParams(window.location.search).get('lang')
-    if (urlLang) setLang(urlLang as any)
-  },[])
+  const active = useScrollSpy(
+    ['about','experiences','services','menus','gallery','contact'],
+    getHeaderOffset()
+  )
 
-  // Persistencia de tema
-  useEffect(()=>{ document.documentElement.dataset.theme = theme; localStorage.setItem('theme', theme) },[theme])
-
-  // Sombra al hacer scroll
   useEffect(()=>{
     const onScroll = () => setScrolled(window.scrollY > 2)
     onScroll()
@@ -42,7 +46,6 @@ export default function Header(){
     return () => window.removeEventListener('scroll', onScroll)
   },[])
 
-  // Cerrar con ESC + focus-trap en panel móvil
   useEffect(()=>{
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setOpen(false)
@@ -50,16 +53,15 @@ export default function Header(){
         const focusables = Array.from(panelRef.current.querySelectorAll(FOCUSABLE)) as HTMLElement[]
         if (focusables.length === 0) return
         const first = focusables[0], last = focusables[focusables.length - 1]
-        const active = document.activeElement as HTMLElement | null
-        if (e.shiftKey && active === first) { e.preventDefault(); last.focus() }
-        else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus() }
+        const act = document.activeElement as HTMLElement | null
+        if (e.shiftKey && act === first) { e.preventDefault(); last.focus() }
+        else if (!e.shiftKey && act === last) { e.preventDefault(); first.focus() }
       }
     }
     document.addEventListener('keydown', onKey)
     return ()=>document.removeEventListener('keydown', onKey)
   },[open])
 
-  // Bloquear scroll al abrir
   useEffect(()=>{
     document.body.classList.toggle('overflow-hidden', open)
     if (open) {
@@ -70,54 +72,51 @@ export default function Header(){
     }
   },[open])
 
-  // Actualiza ?lang= en URL sin romper hash actual
-  const onLangChange = (value: string) => {
-    setLang(value as any)
-    const u = new URL(window.location.href)
-    u.searchParams.set('lang', value)
-    // mantén el hash si existe (excepto home)
-    const keepHash = window.location.hash && window.location.hash !== '#home'
-    history.replaceState({}, '', u.pathname + u.search + (keepHash ? window.location.hash : ''))
-  }
+  useEffect(()=>{
+    const onPop = () => {
+      const h = window.location.hash
+      if (h) smoothScrollToId(h)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  },[])
 
-  // Click en logo: URL limpia (sin hash) + scroll top suave
   const onHomeClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
     e.preventDefault()
     setOpen(false)
     const u = new URL(window.location.href)
-    history.replaceState({}, '', u.pathname + u.search) // sin hash
+    history.replaceState({}, '', u.pathname)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Click en nav: smooth scroll + hash visible
   const onNavClick = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     setOpen(false)
     smoothScrollToId(hash)
     const u = new URL(window.location.href)
-    history.pushState({}, '', u.pathname + u.search + hash)
+    history.pushState({}, '', u.pathname + hash)
   }
 
   const NAV = [
-    { href: '#about',      label: t('nav.about', lang),        icon: <Info size={16}/> },
-    { href: '#experiences',label: t('nav.experiences', lang),  icon: <Sparkles size={16}/> },
-    { href: '#services',   label: t('services.title', lang),   icon: <Briefcase size={16}/> },
-    { href: '#menus',      label: t('nav.menus', lang),        icon: <BookOpenCheck size={16}/> },
-    { href: '#gallery',    label: t('nav.gallery', lang),      icon: <Image size={16}/> },
-    { href: '#contact',    label: t('nav.contact', lang),      icon: <Mail size={16}/> },
+    { href: '#about',       label: t('nav.about', lang),        icon: <Info size={16}/> },
+    { href: '#experiences', label: t('nav.experiences', lang),  icon: <Sparkles size={16}/> },
+    { href: '#services',    label: t('services.title', lang),   icon: <Briefcase size={16}/> },
+    { href: '#menus',       label: t('nav.menus', lang),        icon: <BookOpenCheck size={16}/> },
+    { href: '#gallery',     label: t('nav.gallery', lang),      icon: <Image size={16}/> },
+    { href: '#contact',     label: t('nav.contact', lang),      icon: <Mail size={16}/> },
   ]
 
   return (
     <>
-      {/* Skip link accesible */}
-      <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:z-[60] focus:m-2 focus:rounded focus:bg-[--color-primary] focus:px-3 focus:py-2 focus:text-white">
+      {/* Skip link */}
+      <a href="#about" className="sr-only focus:not-sr-only focus:fixed focus:z-[1000] focus:m-2 focus:rounded focus:bg-[--color-primary] focus:px-3 focus:py-2 focus:text-white">
         Skip to content
       </a>
 
-      {/* Header FIXED oscuro (texto blanco) */}
-      <header className={`fixed inset-x-0 top-0 z-50 border-b border-neutral-800 ${scrolled ? 'shadow-sm' : ''} backdrop-blur bg-neutral-950/70 text-white`}>
+      {/* ===== HEADER (el panel YA NO va dentro de header) ===== */}
+      <header className={`fixed inset-x-0 top-0 z-[900] border-b border-neutral-800 backdrop-blur bg-neutral-950/70 text-white ${scrolled ? 'shadow-sm ring-1 ring-white/10' : ''}`}>
         <div className="header-wrap">
-          {/* Logo grande */}
+          {/* Logo */}
           <a href="/" onClick={onHomeClick} aria-label="Grecia Vargas — Home" className="flex items-center min-w-0">
             <img
               src="/images/logo1.png"
@@ -128,99 +127,125 @@ export default function Header(){
             />
           </a>
 
-          {/* Nav desktop (desde lg) */}
+          {/* Nav escritorio (solo lg+) */}
           <nav className="hidden lg:flex items-center gap-6" aria-label="Primary">
-            {NAV.map(i=> (
-              <a
-                key={i.href}
-                href={i.href}
-                onClick={onNavClick(i.href)}
-                className="group inline-flex items-center gap-2 text-sm text-white/90 hover:text-white transition"
-              >
-                <span className="opacity-80 group-hover:opacity-100">{i.icon}</span>
-                <span>{i.label}</span>
-              </a>
-            ))}
-            <button
-              aria-label="Switch theme"
-              onClick={()=>setTheme(theme==='light'?'dark':'light')}
-              className="inline-flex items-center justify-center rounded-md p-2 text-white/90 hover:text-white hover:bg-white/5"
-            >
-              {theme==='light'? <Moon size={18}/> : <Sun size={18}/>}
-            </button>
+            {NAV.map(i=> {
+              const isActive = active === i.href.slice(1)
+              return (
+                <a
+                  key={i.href}
+                  href={i.href}
+                  onClick={onNavClick(i.href)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={[
+                    'group inline-flex items-center gap-2 text-sm transition',
+                    isActive ? 'text-white' : 'text-white/90 hover:text-white'
+                  ].join(' ')}
+                >
+                  <span className="opacity-80 group-hover:opacity-100">{i.icon}</span>
+                  <span>{i.label}</span>
+                  {isActive && <span className="ml-1 h-[2px] w-2 rounded-full bg-white/90" aria-hidden />}
+                </a>
+              )
+            })}
             <select
               aria-label="Language"
               className="bg-transparent text-sm text-white/90 hover:text-white outline-none"
               value={lang}
-              onChange={(e)=>onLangChange(e.target.value)}
+              onChange={(e)=>setLang(e.target.value as any)}
             >
               <option value="en">EN</option>
               <option value="es">ES</option>
             </select>
           </nav>
 
-          {/* Burger (mobile + tablet) */}
+          {/* Burger SOLO móviles (<lg) */}
           <button
-            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-white/90 hover:text-white hover:bg-white/5"
+            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
             aria-label="Open menu"
             aria-controls="mobile-nav"
             aria-expanded={open}
             onClick={()=>setOpen(true)}
           >
-            <Menu />
+            <Menu className="h-6 w-6" />
+          </button>
+        </div>
+      </header>
+
+      {/* ===== Overlay y Panel FUERA del header ===== */}
+      {open && (
+        <div
+          className="fixed inset-0 z-[980] bg-black/60 backdrop-blur-sm"
+          onClick={()=>setOpen(false)}
+          aria-hidden
+        />
+      )}
+
+      <div
+        id="mobile-nav"
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        className={`fixed right-0 top-0 z-[990] h-[100svh] w-[min(22rem,90vw)] bg-neutral-950 text-white border-l border-neutral-800 p-6 pt-safe transition-transform duration-300 will-change-transform outline-none ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        tabIndex={-1}
+      >
+        <div className="flex items-center justify-between mb-6">
+          <a href="/" aria-label="Grecia Vargas — Home" onClick={onHomeClick} className="flex items-center">
+            <img src="/images/logo1.png" alt="" className="h-[56px] w-auto rounded-[2px]" />
+          </a>
+          <button aria-label="Close menu" onClick={()=>setOpen(false)} className="rounded-md p-2 hover:bg-white/5">
+            <X className="h-6 w-6" />
           </button>
         </div>
 
-        {/* Overlay */}
-        {open && <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm" onClick={()=>setOpen(false)} aria-hidden />}
-
-        {/* Panel móvil dark pro */}
-        <div
-          id="mobile-nav"
-          ref={panelRef}
-          role="dialog"
-          aria-modal="true"
-          className={`fixed right-0 top-0 z-50 h-[100svh] w-[min(22rem,90vw)] bg-neutral-950 text-white border-l border-neutral-800 p-6 pt-safe transition-transform duration-300 will-change-transform outline-none ${open ? 'translate-x-0' : 'translate-x-full'}`}
-          tabIndex={-1}
-        >
-          <div className="flex items-center justify-between mb-6">
-            <a href="/" aria-label="Grecia Vargas — Home" onClick={onHomeClick} className="flex items-center">
-              <img src="/images/logo1.png" alt="" className="h-[56px] w-auto rounded-[2px]" />
-            </a>
-            <button aria-label="Close menu" onClick={()=>setOpen(false)} className="rounded-md p-2 hover:bg-white/5">
-              <X />
-            </button>
-          </div>
-
-          <nav className="flex flex-col gap-2" aria-label="Mobile">
-            {NAV.map(i=> (
+        <nav className="flex flex-col gap-2" aria-label="Mobile">
+          {NAV.map(i=> {
+            const isActive = active === i.href.slice(1)
+            return (
               <a
                 key={i.href}
                 href={i.href}
                 onClick={onNavClick(i.href)}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-base text-white/95 hover:bg-white/5"
+                aria-current={isActive ? 'page' : undefined}
+                className={[
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-base',
+                  isActive ? 'text-white bg-white/5' : 'text-white/95 hover:bg-white/5'
+                ].join(' ')}
               >
                 <span className="text-white/80">{i.icon}</span>
                 <span>{i.label}</span>
               </a>
-            ))}
-          </nav>
+            )
+          })}
+        </nav>
 
-          <div className="mt-6 flex items-center gap-3">
-            <button className="btn btn-ghost text-white/90 hover:text-white" onClick={()=>setTheme(theme==='light'?'dark':'light')}>
-              {theme==='light'? 'Dark' : 'Light'}
-            </button>
-            <select className="btn btn-ghost text-white/90 hover:text-white bg-transparent" value={lang} onChange={(e)=>onLangChange(e.target.value)}>
-              <option value="en">EN</option>
-              <option value="es">ES</option>
-            </select>
-          </div>
-
-          <a href="#contact" onClick={onNavClick('#contact')} className="mt-6 btn btn-primary w-full text-center">
-            {t('hero.cta.availability', lang)}
-          </a>
+        <div className="mt-6 flex items-center gap-3">
+          <select className="btn btn-ghost text-white/90 hover:text-white bg-transparent" value={lang} onChange={(e)=>setLang(e.target.value as any)}>
+            <option value="en">EN</option>
+            <option value="es">ES</option>
+          </select>
         </div>
-      </header>
+
+        <a
+          href="#contact"
+          onClick={onNavClick('#contact')}
+          className="mt-6 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center"
+        >
+          {t('hero.cta.availability', lang)}
+        </a>
+
+        <a
+          href="https://wa.me/0000000000"
+          target="_blank"
+          rel="noopener"
+          className="mt-3 btn btn-whatsapp w-full inline-flex items-center justify-center gap-2 text-center"
+          aria-label="WhatsApp"
+        >
+          <WhatsAppIcon className="h-5 w-5" />
+          <span>{t('hero.cta.whatsapp', lang)}</span>
+        </a>
+      </div>
     </>
   )
 }
+
