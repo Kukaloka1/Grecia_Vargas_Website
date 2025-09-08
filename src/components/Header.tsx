@@ -71,7 +71,7 @@ export default function Header(){
           {/* Logo grande (sin texto al lado) */}
           <a href="#home" aria-label="Grecia Vargas — Home" className="flex items-center min-w-0">
             <img
-              src="/images/logo.png"
+              src="/images/logo1.png"
               alt="Grecia Vargas • Private Chef"
               className="h-[56px] w-auto md:h-[60px] lg:h-[64px] rounded-[2px]"
               loading="eager"

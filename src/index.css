@@ -87,3 +87,7 @@ body { padding-top: var(--header-h); }
 
 /* Ajusta el offset de las anclas a la altura real del header */
 :target { scroll-margin-top: var(--header-h); }
+
+/* Botón tamaño grande y variante WhatsApp */
+.btn-lg { @apply px-6 py-3.5 text-base; }
+.btn-whatsapp { @apply bg-[#25D366] text-white hover:opacity-90; }
