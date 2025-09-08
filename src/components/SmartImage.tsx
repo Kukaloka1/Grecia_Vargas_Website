@@ -1,36 +1,40 @@
-// src/components/SmartImage.tsx
-import React from 'react'
-import { DEFAULT_SIZES, makeSrcSet } from '@/lib/images'
+import React from 'react';
+import { DEFAULT_SIZES, makeSrcSet } from '@/lib/images';
 
 type SmartImageProps = {
-  src: string
-  alt: string
-  width: number
-  height: number
-  className?: string
-  eager?: boolean                // true => loading="eager"
-  priority?: 'low'|'auto'|'high' // fetchPriority
-  sizes?: string                 // sizes responsivo
-  draggable?: boolean
-  /** Solo activa srcset si REALMENTE tienes foo@480/foo@960/foo@1440 */
-  responsive?: boolean
-}
+  src: string;
+  alt: string;
+  width: number;
+  height: number;
+  className?: string;
+  eager?: boolean;
+  priority?: 'low' | 'auto' | 'high';
+  sizes?: string;
+  draggable?: boolean;
+  responsive?: boolean;
+  dataSrc?: string; // Nueva prop para soportar lazy loading
+};
 
 export default function SmartImage({
-  src, alt, width, height,
+  src,
+  alt,
+  width,
+  height,
   className,
   eager = false,
   priority = 'auto',
   sizes = DEFAULT_SIZES,
   draggable = false,
-  responsive = false, // ⬅️ AHORA OFF por defecto
+  responsive = false,
+  dataSrc,
 }: SmartImageProps) {
-  const srcSet = responsive ? makeSrcSet(src) : undefined
-  const finalSizes = responsive && srcSet ? sizes : undefined
+  const srcSet = responsive ? makeSrcSet(src) : undefined;
+  const finalSizes = responsive && srcSet ? sizes : undefined;
 
   return (
     <img
       src={src}
+      data-src={dataSrc} // Pasamos data-src al elemento <img>
       alt={alt}
       width={width}
       height={height}
@@ -42,6 +46,6 @@ export default function SmartImage({
       sizes={finalSizes}
       srcSet={srcSet}
     />
-  )
+  );
 }
 
