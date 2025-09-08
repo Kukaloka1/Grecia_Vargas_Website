@@ -1,23 +1,31 @@
-import Button from '../components/Button'
-import { useLang, t } from '../lib/i18n'
-import { useEffect } from 'react'
-import { enableSmoothAnchors } from '../lib/scroll'
-import { Instagram } from 'lucide-react' // IG icon
+import { useEffect, useRef } from 'react'; // Añadido useRef
+import Button from '../components/Button';
+import { useLang, t } from '../lib/i18n';
+import { enableSmoothAnchors } from '../lib/scroll';
+import { Instagram } from 'lucide-react';
+import SmartImage from '../components/SmartImage';
 
 export default function Hero() {
-  const lang = useLang()
-  useEffect(() => { enableSmoothAnchors() }, [])
+  const lang = useLang();
+  const cleanupRef = useRef<(() => void) | null>(null);
+
+  // Inicializa smooth scrolling con limpieza
+  useEffect(() => {
+    cleanupRef.current = enableSmoothAnchors();
+    return () => {
+      cleanupRef.current?.();
+    };
+  }, []);
 
   return (
     <section
       id="home"
       className={[
         'grid grid-cols-1',
-        'md:[grid-template-columns:0.42fr_1fr]',
-        'lg:[grid-template-columns:0.38fr_1fr]',
-        'xl:[grid-template-columns:0.36fr_1fr]',
+        'md:grid-cols-[0.42fr_1fr]',
+        'lg:grid-cols-[0.38fr_1fr]',
+        'xl:grid-cols-[0.36fr_1fr]',
         '-mt-[var(--header-h)]',
-        // ⬇️ en móviles NO forzamos altura ni ocultamos overflow
         'md:min-h-[calc(100svh-var(--header-h))]',
         'py-0 md:overflow-hidden',
       ].join(' ')}
@@ -26,7 +34,7 @@ export default function Hero() {
       <div
         className={[
           'hero-left',
-          '!justify-start',
+          'flex flex-col justify-start',
           'gap-y-6 sm:gap-y-8',
           'pt-28 sm:pt-32 md:pt-40',
           'lg:pt-[calc(var(--header-h)+4.5rem)]',
@@ -44,14 +52,12 @@ export default function Hero() {
             className={[
               'hero-h1',
               'mt-[60px]',
-              'text-2xl',            // móvil
-              'sm:text-8xl',         // tablet chica
-              'md:text-9xl',         // tablet grande
-              'lg:text-8xl',         // desktop
+              'text-2xl sm:text-8xl md:text-9xl lg:text-8xl',
               'xl:text-[clamp(4.75rem,5vw,7.25rem)]',
               'leading-[1.3] tracking-tight font-extrabold',
               'max-w-[18ch]',
             ].join(' ')}
+            data-aos="fade-up"
           >
             {lang === 'en' ? (
               <>
@@ -63,18 +69,21 @@ export default function Hero() {
             )}
           </h1>
 
-          <p className="mt-6 md:mt-7 text-base md:text-xl opacity-90 max-w-[42ch]">
+          <p
+            className="mt-6 md:mt-7 text-base md:text-xl opacity-90 max-w-[42ch]"
+            data-aos="fade-up"
+            data-aos-delay="100"
+          >
             {t('hero.subtitle', lang)}
           </p>
         </div>
 
-        {/* CTAs en texto: ocultas en móviles, visibles desde md+ */}
-        <div className="hidden md:flex gap-3 pt-8 lg:pt-10">
+        {/* CTAs en texto */}
+        <div className="hidden md:flex gap-3 pt-8 lg:pt-10" data-aos="fade-up" data-aos-delay="200">
           <Button href="#contact">{t('hero.cta.availability', lang)}</Button>
           <Button variant="ghost" href="https://wa.me/34611619968">
             {t('hero.cta.whatsapp', lang)}
           </Button>
-          {/* Instagram (md+) */}
           <Button
             variant="ghost"
             href="https://instagram.com/chefgreciavargas"
@@ -89,19 +98,23 @@ export default function Hero() {
       </div>
 
       {/* Foto */}
-      <div className="hero-center">
-        <img
+      <div className="hero-center relative">
+        <SmartImage
           src="/images/grecia/1.webp"
           alt="Grecia plating"
+          width={1200}
+          height={800}
           className="h-full w-full object-cover hero-bw"
-          loading="eager"
-          decoding="async"
-          fetchPriority="high"
+          eager={true}
+          priority="high"
+          sizes="(max-width: 768px) 100vw, 50vw"
+          responsive={true}
+          onError={() => console.error('Error cargando imagen hero')}
         />
         <div className="dish-circle overflow-hidden pointer-events-none" aria-hidden />
       </div>
 
-      {/* CTAs móviles: debajo de la foto, negros, con wrap seguro */}
+      {/* CTAs móviles */}
       <div className="md:hidden px-4 pb-8">
         <div className="flex flex-wrap justify-center gap-3 pt-6">
           <Button
@@ -110,7 +123,6 @@ export default function Hero() {
           >
             {t('hero.cta.availability', lang)}
           </Button>
-
           <Button
             variant="ghost"
             href="https://wa.me/34611619968"
@@ -118,8 +130,6 @@ export default function Hero() {
           >
             {t('hero.cta.whatsapp', lang)}
           </Button>
-
-          {/* Instagram móvil (negro, alineado y con wrap) */}
           <Button
             variant="ghost"
             href="https://instagram.com/chefgreciavargas"
@@ -133,7 +143,7 @@ export default function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }
 
 

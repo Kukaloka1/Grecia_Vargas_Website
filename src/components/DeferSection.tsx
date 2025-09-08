@@ -1,95 +1,104 @@
-// src/components/DeferSection.tsx
-import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react'
+import React, { useEffect, useMemo, useRef, useState, Suspense } from 'react';
 
 type DeferSectionProps<P = any> = {
-  /** Import dinámico: () => import('...') */
-  loader: () => Promise<{ default: React.ComponentType<P> }>
-  /** Props que van a la sección cuando se monte */
-  props?: P
-  /** Altura mínima del placeholder para evitar saltos de layout */
-  minHeight?: string // ej. "70vh" | "50vh" | "600px"
-  /** rootMargin para disparar antes de entrar al viewport */
-  rootMargin?: string // ej. "200px 0px"
-  /** Clase opcional para el placeholder */
-  className?: string
-}
+  loader: () => Promise<{ default: React.ComponentType<P> }>;
+  props?: P;
+  minHeight?: string;
+  rootMargin?: string;
+  className?: string;
+};
 
 export default function DeferSection<P>({
   loader,
-  props: compProps,               // ⬅️ renombrado correcto
+  props: compProps,
   minHeight = '60vh',
-  rootMargin = '200px 0px',
+  rootMargin = '400px 0px',
   className = '',
 }: DeferSectionProps<P>) {
-  const holderRef = useRef<HTMLDivElement | null>(null)
-  const [visible, setVisible] = useState(false)
+  const holderRef = useRef<HTMLDivElement | null>(null);
+  const [visible, setVisible] = useState(false);
+  const idleCallbackRef = useRef<number | null>(null); // Tipado explícito
 
-  // Lazy component: no descarga el chunk hasta que se renderiza
-  const LazyComp = useMemo(() => React.lazy(loader), [loader])
+  // Lazy component
+  const LazyComp = useMemo(() => React.lazy(loader), [loader]);
 
-  // Prefetch del chunk en idle (si la conexión no es lenta)
+  // Prefetching optimizado
   useEffect(() => {
+    let mounted = true;
+
     const isSlow =
       (navigator as any).connection?.saveData ||
-      (navigator as any).connection?.effectiveType === '2g' ||
-      (navigator as any).connection?.effectiveType === 'slow-2g'
+      ['2g', 'slow-2g'].includes((navigator as any).connection?.effectiveType);
 
-    const run = () => { if (!isSlow) loader().catch(() => {}) }
+    const run = () => {
+      if (!mounted || isSlow) {
+        if (isSlow) console.log('Prefetching omitido por conexión lenta');
+        return;
+      }
+      loader().catch((err) => console.warn('Error prefetching sección:', err));
+    };
+
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(run, { timeout: 1000 })
+      idleCallbackRef.current = window.requestIdleCallback(run, { timeout: 1500 });
     } else {
-      const t = setTimeout(run, 400)
-      return () => clearTimeout(t)
+      idleCallbackRef.current = setTimeout(run, 600); // Eliminamos window. porque setTimeout está en el ámbito global
     }
-  }, [loader])
 
-  // Monta la sección cuando se acerca al viewport
+    return () => {
+      mounted = false;
+      if (idleCallbackRef.current !== null) {
+        if ('cancelIdleCallback' in window) {
+          window.cancelIdleCallback(idleCallbackRef.current);
+        } else {
+          clearTimeout(idleCallbackRef.current);
+        }
+      }
+    };
+  }, [loader]);
+
+  // IntersectionObserver para montar la sección
   useEffect(() => {
-    if (visible) return
-    const el = holderRef.current
-    if (!el) return
+    if (visible || !holderRef.current) return;
 
     const io = new IntersectionObserver(
       (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            setVisible(true)
-            io.disconnect()
-            break
-          }
+        if (entries[0].isIntersecting) {
+          console.log('Cargando sección:', loader.toString());
+          setVisible(true);
+          io.disconnect();
         }
       },
-      { root: null, rootMargin, threshold: 0.01 }
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [visible, rootMargin])
+      { root: null, rootMargin, threshold: 0.1 }
+    );
 
-  // Placeholder sin animaciones/transiciones
+    io.observe(holderRef.current);
+    return () => io.disconnect();
+  }, [visible, rootMargin]);
+
+  // Placeholder
   if (!visible) {
     return (
       <div
         ref={holderRef}
         className={['w-full', className].join(' ')}
-        style={{ minHeight, contain: 'layout', willChange: 'auto' as any }}
+        style={{ minHeight, contain: 'layout' }}
         aria-hidden
       />
-    )
+    );
   }
 
+  // Fallback con skeleton visual
   return (
     <Suspense
       fallback={
         <div
-          className={['w-full', className].join(' ')}
-          style={{ minHeight, contain: 'layout' as any }}
+          className={['w-full animate-pulse bg-neutral-100 dark:bg-neutral-900', className].join(' ')}
+          style={{ minHeight }}
           aria-hidden
         />
       }
     >
-      {/* spread seguro incluso si no hay props */}
-      
       <LazyComp {...((compProps as any) || {})} />
     </Suspense>
-  )
+  );
 }
