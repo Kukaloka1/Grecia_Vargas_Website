@@ -71,14 +71,14 @@ export default function CTA(){
               size="lg"
               variant="primary"
               className="!bg-white !text-neutral-900 !shadow !shadow-white/10"
-              href="mailto:hello@greciavargas.example.com?subject=Private%20Chef%20Inquiry%20—%20Grecia%20Vargas"
+              href="mailto:cocinadegre.com"
             >
               {t('cta.button', lang)}
             </Button>
             <Button
               size="lg"
               variant="whatsapp"
-              href="https://wa.me/0000000000?text=Hi!%20We%27d%20like%20to%20check%20availability%20for%20a%20private%20dinner/pop-up."
+              href="https://wa.me/34611619968?text=Hi!%20We%27d%20like%20to%20check%20availability%20for%20a%20private%20dinner/pop-up."
             >
               WhatsApp
             </Button>

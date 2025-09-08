@@ -71,7 +71,7 @@ export default function Hero() {
         {/* CTAs en texto: ocultas en móviles, visibles desde md+ */}
         <div className="hidden md:flex gap-3 pt-8 lg:pt-10">
           <Button href="#contact">{t('hero.cta.availability', lang)}</Button>
-          <Button variant="ghost" href="https://wa.me/0000000000">
+          <Button variant="ghost" href="https://wa.me/34611619968">
             {t('hero.cta.whatsapp', lang)}
           </Button>
           {/* Instagram (md+) */}
@@ -113,7 +113,7 @@ export default function Hero() {
 
           <Button
             variant="ghost"
-            href="https://wa.me/0000000000"
+            href="https://wa.me/34611619968"
             className="!bg-black !text-white !border-transparent hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 flex-1 min-w-[140px]"
           >
             {t('hero.cta.whatsapp', lang)}

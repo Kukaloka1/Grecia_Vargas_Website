@@ -168,7 +168,7 @@ export default function Services(){
           <Button size="lg" variant="primary" className="!bg-black !text-white">
             {t('hero.cta.availability', lang)}
           </Button>
-          <Button size="lg" variant="whatsapp" href="https://wa.me/0000000000">
+          <Button size="lg" variant="whatsapp" href="https://wa.me/34611619968">
             {t('hero.cta.whatsapp', lang)}
           </Button>
         </div>

@@ -88,7 +88,7 @@ export default function Experiences(){
             <Button size="lg" variant="primary" className="!bg-white !text-neutral-900">
               {t('hero.cta.availability', lang)}
             </Button>
-            <Button size="lg" variant="whatsapp" href="https://wa.me/0000000000">
+            <Button size="lg" variant="whatsapp" href="https://wa.me/34611619968">
               {t('hero.cta.whatsapp', lang)}
             </Button>
           </div>

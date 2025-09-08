@@ -21,9 +21,7 @@ export default function About(){
   return (
     <section id="about" className="section">
       <Container>
-        <p className="text-xs tracking-widest uppercase opacity-70 mb-3" data-aos="fade-up">
-          {t('about.kicker', lang)}
-        </p>
+       
 
         <SectionTitle title={t('about.title', lang)} subtitle={t('about.lead1', lang)} />
 
