@@ -1,7 +1,11 @@
 import Container from '../components/Container'
 import SectionTitle from '../components/SectionTitle'
 import Button from '../components/Button'
-import { Building2, Ship, Home, MapPin, ShieldCheck, Leaf, Globe2, CalendarCheck, Sparkles, Dumbbell, Palette, Languages, Wine } from 'lucide-react'
+import { useMemo } from 'react'
+import {
+  Building2, Ship, Home, MapPin, ShieldCheck, Leaf, Globe2,
+  CalendarCheck, Sparkles, Dumbbell, Palette, Languages, Wine
+} from 'lucide-react'
 import { useLang, t } from '../lib/i18n'
 
 type CardProps = {
@@ -14,10 +18,26 @@ type CardProps = {
   mostRequested?: boolean
 }
 
+/* ===== CARD ===== */
 function Card({ icon, title, desc, bullets, img, badges, mostRequested }: CardProps) {
+  const lang = useLang()
+
+  // Mapea el icono correcto para cada badge sin duplicar llamadas a t(...)
+  const iconForBadge = useMemo(() => {
+    const map = new Map<string, JSX.Element>([
+      [t('services.tag.fullservice', lang), <ShieldCheck size={14} className="shrink-0" />],
+      [t('services.tag.product',     lang), <Leaf        size={14} className="shrink-0" />],
+      [t('services.tag.wellness',    lang), <Dumbbell    size={14} className="shrink-0" />],
+      [t('services.tag.styling',     lang), <Palette     size={14} className="shrink-0" />],
+      [t('services.tag.languages',   lang), <Languages   size={14} className="shrink-0" />],
+      [t('services.tag.pairings',    lang), <Wine        size={14} className="shrink-0" />],
+    ])
+    return (label: string) => map.get(label)
+  }, [lang])
+
   return (
-    <div className="group overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 text-white" data-aos="fade-up">
-      {/* Imagen más alta para que “se expanda” visualmente */}
+    <div className="group overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 text-white">
+      {/* Imagen */}
       <div className="relative w-full h-[220px] sm:h-[260px] lg:h-[320px] overflow-hidden">
         <img
           src={img}
@@ -29,40 +49,38 @@ function Card({ icon, title, desc, bullets, img, badges, mostRequested }: CardPr
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-black/15 to-transparent" />
         {mostRequested && (
           <div className="absolute top-3 left-3 inline-flex items-center gap-1 rounded-full bg-white text-neutral-900 px-2.5 py-1 text-[11px] font-semibold shadow">
-            <Sparkles size={14} /> {t('services.badge.most', useLang())}
+            <Sparkles size={14} /> {t('services.badge.most', lang)}
           </div>
         )}
       </div>
 
       {/* Contenido */}
-      <div className="p-6">
-        <div className="flex items-center gap-2 text-xs uppercase tracking-widest text-white/70">
-          {icon}<span>{title}</span>
+      <div className="p-5 sm:p-6">
+        <div className="flex items-center gap-2 text-[11px] sm:text-xs uppercase tracking-widest text-white/70">
+          {icon}<span className="truncate">{title}</span>
         </div>
 
-        <p className="mt-2 text-sm text-white/85">{desc}</p>
+        <p className="mt-2 text-sm sm:text-[15px] text-white/85">{desc}</p>
 
-        <ul className="mt-4 space-y-1 text-sm">
+        <ul className="mt-4 space-y-1.5 text-sm sm:text-[15px]">
           {bullets.map((b) => (
             <li key={b} className="text-white/80">• {b}</li>
           ))}
         </ul>
 
-        {/* Badges de venta */}
-        <div className="mt-5 flex flex-wrap gap-2">
+        {/* Badges — pills pro en breakpoints (grid en mobile, wrap en sm+) */}
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
           {badges.map((label) => (
             <span
               key={label}
-              className="inline-flex items-center gap-1 rounded-full border border-neutral-700/70 bg-neutral-900/60 px-2.5 py-1 text-[11px] text-white/85"
+              className="inline-flex items-center gap-1.5 rounded-full
+                         ring-1 ring-white/10 bg-white/5
+                         px-2.5 py-1.5 text-[11px] sm:text-xs text-white/85
+                         hover:bg-white/7 transition-colors"
+              title={label}
             >
-              {/* Icono contextual según badge */}
-              {label === t('services.tag.fullservice', useLang()) && <ShieldCheck size={14} />}
-              {label === t('services.tag.product', useLang()) && <Leaf size={14} />}
-              {label === t('services.tag.wellness', useLang()) && <Dumbbell size={14} />}
-              {label === t('services.tag.styling', useLang()) && <Palette size={14} />}
-              {label === t('services.tag.languages', useLang()) && <Languages size={14} />}
-              {label === t('services.tag.pairings', useLang()) && <Wine size={14} />}
-              <span>{label}</span>
+              {iconForBadge(label)}
+              <span className="truncate">{label}</span>
             </span>
           ))}
         </div>
@@ -71,6 +89,7 @@ function Card({ icon, title, desc, bullets, img, badges, mostRequested }: CardPr
   )
 }
 
+/* ===== SECTION ===== */
 export default function Services(){
   const lang = useLang()
 
@@ -134,7 +153,9 @@ export default function Services(){
     <section id="services" className="section">
       <Container>
         <SectionTitle title={t('services.title', lang)} subtitle={t('services.subtitle', lang)} />
-        <p className="mb-8 text-base leading-relaxed text-[#372549]">
+
+        {/* Lead (sin tocar el texto) */}
+        <p className="mb-8 text-[15px] sm:text-base leading-relaxed text-white/70">
           {t('services.lead', lang)}
         </p>
 
@@ -147,30 +168,59 @@ export default function Services(){
           ))}
         </div>
 
-        {/* Banda global + FOMO (dark para coherencia visual) */}
+        {/* Ribbon — usa SIEMPRE tus strings i18n, nada hardcode */}
         <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-sm text-center text-white/85 flex items-center justify-center gap-2" data-aos="fade-up">
-            <MapPin size={16} className="text-white/70"/>{t('services.ribbon.1', lang)}
-          </div>
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-sm text-center text-white/85 flex items-center justify-center gap-2" data-aos="fade-up" data-aos-delay="60">
-            <Globe2 size={16} className="text-white/70"/>{t('services.ribbon.2', lang)}
-          </div>
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-sm text-center text-white/85 flex items-center justify-center gap-2" data-aos="fade-up" data-aos-delay="120">
-            <Sparkles size={16} className="text-white/70"/>{t('services.ribbon.3', lang)}
-          </div>
-          <div className="rounded-xl border border-neutral-800 bg-neutral-950 px-4 py-3 text-sm text-center text-white/85 flex items-center justify-center gap-2" data-aos="fade-up" data-aos-delay="180">
-            <CalendarCheck size={16} className="text-white/70"/>{t('services.ribbon.4', lang)}
-          </div>
+          {[
+            { icon: <MapPin size={16} className="text-white/70"/>, text: t('services.ribbon.1', lang), d: 0 },
+            { icon: <Globe2 size={16} className="text-white/70"/>, text: t('services.ribbon.2', lang), d: 60 },
+            { icon: <Sparkles size={16} className="text-white/70"/>, text: t('services.ribbon.3', lang), d: 120 },
+            { icon: <CalendarCheck size={16} className="text-white/70"/>, text: t('services.ribbon.4', lang), d: 180 },
+          ].map((r) => (
+            <div
+              key={r.text}
+              data-aos="fade-up"
+              data-aos-delay={r.d}
+              className="rounded-2xl border border-neutral-800 bg-neutral-950
+                         ring-1 ring-white/5
+                         px-4 py-3 min-h-12
+                         text-sm lg:text-[15px] text-center text-white/85
+                         flex items-center justify-center gap-2"
+            >
+              {r.icon}
+              <span className="truncate">{r.text}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Mini CTA inline */}
-        <div className="mt-10 flex flex-col sm:flex-row gap-3 justify-center">
-          <Button size="lg" variant="primary" className="!bg-black !text-white">
-            {t('hero.cta.availability', lang)}
-          </Button>
-          <Button size="lg" variant="whatsapp" href="https://wa.me/34611619968">
-            {t('hero.cta.whatsapp', lang)}
-          </Button>
+        {/* CTAs — 2 botones perfectos en desktop y breakpoints (texto intacto) */}
+        <div className="mt-10 lg:mt-12">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <Button
+              href="#contact"
+              size="lg"
+              variant="primary"
+              className="w-full sm:w-auto
+                         inline-flex items-center justify-center gap-2
+                         !h-12 sm:!h-12 !px-5 sm:!px-6 !rounded-xl
+                         !bg-black !text-white !ring-1 !ring-white/10 hover:!ring-white/20
+                         text-base"
+            >
+              <CalendarCheck className="h-5 w-5" />
+              <span>{t('hero.cta.availability', lang)}</span>
+            </Button>
+
+            <Button
+              href="https://wa.me/34611619968"
+              size="lg"
+              variant="whatsapp"
+              className="w-full sm:w-auto
+                         inline-flex items-center justify-center gap-2
+                         !h-12 sm:!h-12 !px-5 sm:!px-6 !rounded-xl
+                         text-base"
+            >
+              {t('hero.cta.whatsapp', lang)}
+            </Button>
+          </div>
         </div>
       </Container>
     </section>
