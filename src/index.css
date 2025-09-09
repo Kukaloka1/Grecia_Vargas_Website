@@ -72,9 +72,7 @@ body {
 .side-link { @apply text-sm opacity-80 hover:opacity-100 transition; }
 
 /* ===== Anclas sin saltos (offset header) ===== */
-/* Funciona con hash nativo, scrollIntoView y navegación manual */
 section[id] { scroll-margin-top: var(--header-h, 80px); }
-/* Refuerzo si el navegador usa :target internamente */
 :target { scroll-margin-top: var(--header-h, 80px); }
 
 /* ===== Header utilities ===== */
@@ -84,10 +82,8 @@ section[id] { scroll-margin-top: var(--header-h, 80px); }
 /* No @apply container-xl aquí: utilidades directas + safe areas */
 .header-wrap {
   @apply mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl h-16 lg:h-20 flex items-center justify-between;
-  /* Safe areas iOS */
   padding-left: max(1rem, env(safe-area-inset-left));
   padding-right: max(1rem, env(safe-area-inset-right));
-  /* Usa la misma altura que la var del header */
   height: var(--header-h);
 }
 
@@ -119,66 +115,11 @@ img[alt="Grecia Vargas"] { height: 120px; }
 }
 .anim-count-pop { animation: step-pop 420ms cubic-bezier(.2,.9,.25,1) both; }
 
-/* ===== GALLERY: SIEMPRE ESTÁTICO Y VISIBLE (unificado) ===== */
-/* Desactiva animaciones/transiciones en la galería para cero jank */
-#gallery, #gallery * {
-  animation: none !important;
-  transition: none !important;
-  transform: none !important;
-  opacity: 1 !important;
-}
-/* Evita virtualización / apagado fuera de viewport */
-#gallery {
-  content-visibility: visible !important;
-  contain: none !important;
-  will-change: auto !important;
-  filter: none !important;
-  perspective: none !important;
-}
-
-/* Fuerza #home a 2 columnas reales (por si .hero-grid quedó en algún sitio) */
-#home { grid-template-columns: 1fr; }
-@media (min-width: 768px){  #home { grid-template-columns: 0.42fr 1fr; } }
-@media (min-width: 1024px){ #home { grid-template-columns: 0.38fr 1fr; } }
-@media (min-width: 1280px){ #home { grid-template-columns: 0.36fr 1fr; } }
-
-/* Asegura B/N en la foto del hero en todos los tamaños */
-.hero-bw { filter: grayscale(1) contrast(1.05) !important; }
-
-/* ===== Gallery: anti-animaciones y aislamiento de repaints ===== */
-.no-aos-zone, .no-aos-zone * {
-  /* Desactiva cualquier anim/transition que venga de AOS o utilidades */
-  animation: none !important;
-  transition: none !important;
-}
-
-/* Neutraliza clases típicas de AOS si aparecen por herencia */
-.no-aos-zone [class*="aos-"],
-.no-aos-zone .aos-init,
-.no-aos-zone .aos-animate {
-  transform: none !important;
-  opacity: 1 !important;
-}
-
-/* Aísla repaints de la galería para que el scroll fuera no la “mueva” */
-.gallery-grid {
-  contain: paint;              /* aísla el área de pintura */
-  will-change: auto;           /* evita reservar GPU permanente */
-}
-
-/* Las imágenes se quedan estáticas, sin fades ni transforms */
-.static-img,
-.no-aos-zone img[data-static] {
-  transform: none !important;
-  transition: none !important;
-  opacity: 1 !important;
-  backface-visibility: hidden; /* seguridad ante compositing raro */
-}
-
-/* Aísla repaints del grid de la galería */
+/* ===== Gallery: estable, sin interferencia de AOS ===== */
+/* Aísla repaints del grid de la galería (evita jank) */
 #gallery .grid { contain: paint; }
 
-/* Mata cualquier rastro de AOS dentro de gallery si llegara por herencia */
+/* Si por herencia entra AOS en Gallery, neutraliza su efecto sin tocar estilos base */
 #gallery [class*="aos-"],
 #gallery .aos-init,
 #gallery .aos-animate {

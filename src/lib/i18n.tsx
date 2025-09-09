@@ -11,7 +11,7 @@ export function useLang(){ return useSyncExternalStore(sub=>{ listeners.add(sub)
 const dict: Record<Lang, Record<string,string>> = {
   en: {
     'brand.title': 'Grecia Vargas',
-    'brand.role': 'Private Chef',
+    'brand.role': 'Grecia Vargas\ninternational Private Chef', // ✅ Actualizado con \n pa que "international Private Chef" quede debajo de "Grecia Vargas"
 
     // === Title split en dos líneas ===
     'hero.title': 'Mediterranean elegance, crafted for you',
@@ -136,7 +136,7 @@ const dict: Record<Lang, Record<string,string>> = {
     'services.ribbon.4': 'Limited dates each month'
   },
 
-  // ⬇️ Español: SIN CAMBIOS
+  // ⬇️ Español: SIN CAMBIOS (pero si quieres consistencia, podrías agregar \n en 'brand.role': 'Grecia Vargas\nChef Privada')
   es: {
     'brand.title': 'Grecia Vargas',
     'brand.role': 'Chef Privada',

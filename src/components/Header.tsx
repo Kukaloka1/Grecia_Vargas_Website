@@ -40,7 +40,15 @@ export default function Header(){
   const scrollSpyActive = useScrollSpy(SECTION_IDS as unknown as string[], getHeaderOffset())
   const [active, setActive] = useState<string>(scrollSpyActive || '')
 
-  useEffect(() => { setActive(scrollSpyActive || '') }, [scrollSpyActive])
+  useEffect(() => { 
+    const newActive = scrollSpyActive || ''
+    // ✅ FIX: Si scrollY ≈ 0 (hero), no marcar nada (no 'about' al inicio)
+    if (window.scrollY < getHeaderOffset() / 2) {
+      setActive('')
+    } else {
+      setActive(newActive)
+    }
+  }, [scrollSpyActive])
 
   // ➊ Medir alto del header y sincronizar --header-h (sin optional chaining tras new)
   useEffect(() => {
@@ -67,7 +75,7 @@ export default function Header(){
     }
   }, [])
 
-  // ➋ Efecto de scroll para sombra/glow
+  // ➋ Efecto de scroll para sombra/glow — optimizado con backdrop blur sutil pa más fina
   useEffect(() => {
     let ticking = false
     const onScroll = () => {
@@ -127,6 +135,7 @@ export default function Header(){
     const u = new URL(window.location.href)
     history.replaceState({}, '', u.pathname)
     window.scrollTo({ top: 0, behavior: 'smooth' })
+    setActive('') // ✅ FIX: Al click logo (hero/top), clear active pa no marcar nada
   }
 
   // ➏ Click en nav: si la sección aún no existe, cambiamos el hash y dejamos que el effect haga el scroll
@@ -160,11 +169,11 @@ export default function Header(){
         Skip to content
       </a>
 
-      {/* ===== HEADER ===== */}
-      <header className={`fixed inset-x-0 top-0 z-[900] border-b border-neutral-800 bg-neutral-950/90 text-white ${scrolled ? 'shadow-sm ring-1 ring-white/10' : ''}`}>
+      {/* ===== HEADER ===== — optimizado: backdrop-blur pa más fina, transitions suaves en scrolled */}
+      <header className={`fixed inset-x-0 top-0 z-[900] border-b border-neutral-800 bg-neutral-950/95 backdrop-blur-md text-white transition-all duration-300 ease-out ${scrolled ? 'shadow-sm ring-1 ring-white/10' : ''}`}>
         <div className="header-wrap">
           {/* Logo */}
-          <a href="/" onClick={onHomeClick} aria-label="Grecia Vargas — Home" className="flex items-center min-w-0">
+          <a href="/" onClick={onHomeClick} aria-label="Grecia Vargas — Home" className="flex items-center min-w-0 transition-transform duration-300 hover:scale-105">
             <img
               src="/images/logo1.png"
               alt="Grecia Vargas • Private Chef"
@@ -175,7 +184,7 @@ export default function Header(){
             />
           </a>
 
-          {/* Nav escritorio (solo lg+) */}
+          {/* Nav escritorio (solo lg+) — fina: hover scale sutil, active underline elegante en vez de dot */}
           <nav className="hidden lg:flex items-center gap-6" aria-label="Primary">
             {NAV.map(i=> {
               const isActive = active === i.href.slice(1)
@@ -186,20 +195,19 @@ export default function Header(){
                   onClick={onNavClick(i.href)}
                   aria-current={isActive ? 'page' : undefined}
                   className={[
-                    'group inline-flex items-center gap-2 text-sm transition',
-                    isActive ? 'text-white' : 'text-white/90 hover:text-white'
+                    'group relative inline-flex items-center gap-2 text-sm px-2 py-1 transition-all duration-300 ease-out hover:scale-105 hover:text-white',
+                    isActive ? 'text-white after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-full after:bg-gradient-to-r after:from-purple-400 after:to-purple-600 after:rounded-full after:origin-center after:scale-x-100 after:transition-transform after:duration-300' : 'text-white/90 hover:text-white after:absolute after:left-0 after:bottom-0 after:h-[2px] after:w-0 after:bg-transparent after:rounded-full after:origin-left after:transition-all after:duration-300 hover:after:w-full hover:after:bg-white/50'
                   ].join(' ')}
                 >
-                  <span className="opacity-80 group-hover:opacity-100">{i.icon}</span>
+                  <span className="opacity-80 group-hover:opacity-100 transition-opacity">{i.icon}</span>
                   <span>{i.label}</span>
-                  {isActive && <span className="ml-1 h-[2px] w-2 rounded-full bg-white/90" aria-hidden />}
                 </a>
               )
             })}
             <select
               aria-label="Language"
               title="Select language"
-              className="bg-transparent text-sm text-white/90 hover:text-white outline-none"
+              className="bg-transparent text-sm text-white/90 hover:text-white outline-none transition-colors duration-200"
               value={lang}
               onChange={(e)=>setLang(e.target.value as any)}
             >
@@ -208,9 +216,9 @@ export default function Header(){
             </select>
           </nav>
 
-          {/* Burger SOLO móviles (<lg) */}
+          {/* Burger SOLO móviles (<lg) — fina: hover suave */}
           <button
-            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-white/40"
+            className="lg:hidden inline-flex items-center justify-center rounded-md p-2 text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40 transition-colors duration-200"
             aria-label="Open menu"
             aria-controls="mobile-nav"
             aria-expanded={open}
@@ -221,10 +229,10 @@ export default function Header(){
         </div>
       </header>
 
-      {/* ===== Overlay y Panel FUERA del header ===== */}
+      {/* ===== Overlay y Panel FUERA del header — optimizado: backdrop blur en overlay pa más moderna */}
       {open && (
         <div
-          className="fixed inset-0 z-[980] bg-black/60"
+          className="fixed inset-0 z-[980] bg-black/70 backdrop-blur-sm"
           onClick={()=>setOpen(false)}
           aria-hidden
         />
@@ -235,14 +243,14 @@ export default function Header(){
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        className={`fixed right-0 top-0 z-[990] h-[100svh] w-[min(22rem,90vw)] bg-neutral-950 text-white border-l border-neutral-800 p-6 pt-safe transition-transform duration-300 outline-none ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed right-0 top-0 z-[990] h-[100svh] w-[min(22rem,90vw)] bg-neutral-950/95 backdrop-blur-md text-white border-l border-neutral-800 p-6 pt-safe transition-transform duration-300 ease-out outline-none ${open ? 'translate-x-0' : 'translate-x-full'}`}
         tabIndex={-1}
       >
         <div className="flex items-center justify-between mb-6">
-          <a href="/" aria-label="Grecia Vargas — Home" onClick={onHomeClick} className="flex items-center">
+          <a href="/" aria-label="Grecia Vargas — Home" onClick={onHomeClick} className="flex items-center transition-transform duration-300 hover:scale-105">
             <img src="/images/logo1.png" alt="" className="h-[56px] w-auto rounded-[2px]" />
           </a>
-          <button aria-label="Close menu" onClick={()=>setOpen(false)} className="rounded-md p-2 hover:bg-white/5">
+          <button aria-label="Close menu" onClick={()=>setOpen(false)} className="rounded-md p-2 hover:bg-white/10 transition-colors duration-200">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -257,8 +265,8 @@ export default function Header(){
                 onClick={onNavClick(i.href)}
                 aria-current={isActive ? 'page' : undefined}
                 className={[
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-base',
-                  isActive ? 'text-white bg-white/5' : 'text-white/95 hover:bg-white/5'
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-base transition-all duration-300 ease-out hover:scale-105 hover:bg-white/5',
+                  isActive ? 'text-white bg-white/10 after:absolute after:left-3 after:top-1/2 after:h-[2px] after:w-full after:-translate-y-1/2 after:bg-gradient-to-r after:from-purple-400 after:to-purple-600 after:rounded-full' : 'text-white/95 hover:text-white'
                 ].join(' ')}
               >
                 <span className="text-white/80">{i.icon}</span>
@@ -269,7 +277,7 @@ export default function Header(){
         </nav>
 
         <div className="mt-6 flex items-center gap-3">
-          <select className="btn btn-ghost text-white/90 hover:text-white bg-transparent" value={lang} onChange={(e)=>setLang(e.target.value as any)}>
+          <select className="btn btn-ghost text-white/90 hover:text-white bg-transparent transition-colors duration-200" value={lang} onChange={(e)=>setLang(e.target.value as any)}>
             <option value="en">EN</option>
             <option value="es">ES</option>
           </select>
@@ -279,7 +287,7 @@ export default function Header(){
         <a
           href="#contact"
           onClick={onNavClick('#contact')}
-          className="mt-6 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center"
+          className="mt-6 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center transition-all duration-300 hover:scale-105"
         >
           {t('hero.cta.availability', lang)}
         </a>
@@ -288,7 +296,7 @@ export default function Header(){
           href="https://wa.me/34611619968"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center"
+          className="mt-3 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center transition-all duration-300 hover:scale-105"
           aria-label="WhatsApp"
         >
           <WhatsAppIcon className="h-5 w-5" />
@@ -299,7 +307,7 @@ export default function Header(){
           href="https://instagram.com/chefgreciavargas"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center"
+          className="mt-3 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center transition-all duration-300 hover:scale-105"
           aria-label="Instagram"
         >
           <Instagram className="h-5 w-5" />

@@ -1,92 +1,102 @@
-import { useEffect, useMemo, useState } from 'react';
+// src/sections/Gallery.tsx
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Container from '../components/Container';
 import SectionTitle from '../components/SectionTitle';
 import SmartImage from '@/components/SmartImage';
-import { calcEagerCount, preloadImages, predecodeImages, DEFAULT_SIZES } from '@/lib/images';
+import { preloadImages, predecodeImages, DEFAULT_SIZES } from '@/lib/images';
+import type { CSSProperties } from 'react'; // ✅ Agregado pa typing estricto de style
 
 const IMAGES = Array.from({ length: 16 }, (_, i) => `/images/gallery/ph-${i + 1}.webp`);
 
-export default function Gallery(){
+export default function Gallery() {
   const images = useMemo(() => IMAGES, []);
-  const [eagerCount, setEagerCount] = useState(4);
-  const [forceEager, setForceEager] = useState(false); // 🔒 tras idle, anclamos TODAS las imágenes
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [animated, setAnimated] = useState<Set<number>>(new Set());
 
-  // Ajusta eager por breakpoint (2 filas)
-  useEffect(()=>{
-    const update = () => setEagerCount(calcEagerCount(window.innerWidth));
-    update();
-    let t: number | undefined;
-    const onResize = () => { clearTimeout(t); t = window.setTimeout(update, 140); };
-    window.addEventListener('resize', onResize, { passive: true });
-    return () => { window.removeEventListener('resize', onResize); clearTimeout(t); };
-  },[]);
-
-  // Preload SOLO primeras filas visibles
-  useEffect(()=>{
-    const cleanup = preloadImages(images.slice(0, eagerCount), 4);
+  // Preload + pre-decode de TODAS agresivamente (pa que estén listas y decodificadas antes de scrollear)
+  useEffect(() => {
+    const cleanup = preloadImages(images, 16); // Alta concurrency pa todo rápido
+    predecodeImages(images, 'high'); // Cambié a 'high' si tu lib lo soporta (mejor calidad y menos jank en decodificación)
     return cleanup;
-  }, [images, eagerCount]);
+  }, [images]);
 
-  // Pre-decode en idle del resto (para evitar jank al re-entrar)
-  useEffect(()=>{
-    predecodeImages(images.slice(eagerCount), 'low');
-  }, [images, eagerCount]);
-
-  // 🔒 Tras un idle, marcamos TODAS las imágenes como eager para dejarlas decodificadas
+  // Solo usamos observer para fade-in elegante (una vez por imagen)
+  // Pinning GPU lo aplicamos SIEMPRE a todas desde el inicio (evita cualquier jank en scrolls rápidos/lentos)
   useEffect(() => {
-    const w = window as any;
-    const run = () => setForceEager(true);
-    if (typeof w.requestIdleCallback === 'function') {
-      const id = w.requestIdleCallback(run, { timeout: 2500 });
-      return () => w.cancelIdleCallback?.(id);
-    } else {
-      const t = setTimeout(run, 1500);
-      return () => clearTimeout(t);
-    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        setAnimated((prev) => {
+          const next = new Set(prev);
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const el = entry.target as HTMLElement;
+            const idxAttr = el.getAttribute('data-index');
+            if (!idxAttr) continue;
+            const idx = Number(idxAttr);
+            if (!Number.isFinite(idx)) continue;
+            if (next.has(idx)) continue;
+            next.add(idx);
+          }
+          return next;
+        });
+        // Unobserve pa no re-trigger
+        for (const entry of entries) {
+          if (entry.isIntersecting) io.unobserve(entry.target);
+        }
+      },
+      { 
+        root: null, 
+        threshold: 0.1, // Bajé a 0.1 pa trigger más temprano (menos chance de skip en scroll rápido)
+        rootMargin: '100px' // Anticipa 100px antes de entrar en vista pa animar proactivamente
+      }
+    );
+
+    itemRefs.current.forEach((el) => el && io.observe(el));
+
+    return () => io.disconnect();
   }, []);
 
-  // 🔧 Limpia cualquier traza de AOS dentro de la galería (si se filtró por layout)
-  useEffect(() => {
-    const root = document.getElementById('gallery');
-    if (!root) return;
-    root.querySelectorAll<HTMLElement>('[data-aos], .aos-init, .aos-animate').forEach(el => {
-      el.removeAttribute('data-aos');
-      el.classList.remove('aos-init', 'aos-animate');
-      el.style.transition = 'none';
-      el.style.transform = 'none';
-      // Mantén opacity by default (no la fuerzo aquí para no tocar tu diseño)
-    });
-  }, []);
+  // Estilo GPU pinning FIJO para TODAS las imágenes (suaves forever, sin condicionales en scroll)
+  // ✅ Typing estricto con CSSProperties pa evitar TS error en backfaceVisibility (debe ser 'hidden' literal, no string genérico)
+  const gpuPinStyle: CSSProperties = {
+    transform: 'translateZ(0)',
+    backfaceVisibility: 'hidden',
+    willChange: 'transform',
+  };
 
   return (
     <section id="gallery" className="section">
       <Container>
-        <SectionTitle title="Gallery" subtitle="A glimpse of plates, table styling and ambience." />
+        <SectionTitle
+          title="Gallery"
+          subtitle="A glimpse de plates, table styling and ambience."
+        />
 
-        <div
-          className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
-          style={{ contain: 'paint' }} // aísla repaints del grid
-        >
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {images.map((src, i) => {
-            // primeras filas eager; tras idle, TODAS eager
-            const eager = forceEager ? true : (i < eagerCount);
-            const priority = eager ? (i < 4 ? 'high' : 'auto') : 'low';
+            const priority = i < 4 ? 'high' : 'auto';
+            const animate = animated.has(i);
+
             return (
               <div
                 key={src}
-                className="aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-900"
+                ref={(el) => (itemRefs.current[i] = el)}
+                data-index={i}
+                className={`aspect-[4/5] overflow-hidden rounded-2xl bg-neutral-100 dark:bg-neutral-900 transition-all duration-700 ease-out
+                  ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}
               >
                 <SmartImage
                   src={src}
                   alt={`Grecia Vargas · gallery ${i + 1}`}
                   width={800}
                   height={1000}
-                  className="h-full w-full object-cover"
-                  eager={eager}
+                  className="h-full w-full object-cover transition-opacity duration-700 ease-out" // Agregué transición suave extra en la imagen misma
+                  eager={true}
                   priority={priority}
                   sizes={DEFAULT_SIZES}
                   draggable={false}
-                  freeze // 🔒 imágenes estáticas: sin animaciones ni re-fades
+                  // Pinning SIEMPRE activo (no condicional) pa zero jank en scrolls rápidos
+                  style={gpuPinStyle}
                 />
               </div>
             );
@@ -96,6 +106,8 @@ export default function Gallery(){
     </section>
   );
 }
+
+
 
 
 

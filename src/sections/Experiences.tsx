@@ -24,7 +24,7 @@ export default function Experiences(){
           {/* Studio Private Dining */}
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6" data-aos="fade-up">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles size={18} className="opacity-80" />
+              <Sparkles size={18} className="opacity-80 text-purple-500 animate-pulse [animation-delay:0s]" />
               <h3 className="font-bold">{t('experiences.cards.studio.title', lang)}</h3>
             </div>
             <p className="text-sm opacity-80">{t('experiences.cards.studio.desc', lang)}</p>
@@ -38,7 +38,7 @@ export default function Experiences(){
           {/* Yacht Chef */}
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6" data-aos="fade-up" data-aos-delay="80">
             <div className="flex items-center gap-2 mb-2">
-              <Leaf size={18} className="opacity-80" />
+              <Leaf size={18} className="opacity-80 text-purple-500 animate-pulse [animation-delay:0.3s]" />
               <h3 className="font-bold">{t('experiences.cards.yacht.title', lang)}</h3>
             </div>
             <p className="text-sm opacity-80">{t('experiences.cards.yacht.desc', lang)}</p>
@@ -52,7 +52,7 @@ export default function Experiences(){
           {/* Villas & Events */}
           <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 p-6" data-aos="fade-up" data-aos-delay="160">
             <div className="flex items-center gap-2 mb-2">
-              <Handshake size={18} className="opacity-80" />
+              <Handshake size={18} className="opacity-80 text-purple-500 animate-pulse [animation-delay:0.6s]" />
               <h3 className="font-bold">{t('experiences.cards.villas.title', lang)}</h3>
             </div>
             <p className="text-sm opacity-80">{t('experiences.cards.villas.desc', lang)}</p>
