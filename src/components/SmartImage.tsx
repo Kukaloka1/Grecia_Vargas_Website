@@ -13,7 +13,7 @@ type SmartImageProps = {
   draggable?: boolean;
   responsive?: boolean;
   dataSrc?: string;
-  onError?: (event: Event) => void; // Añadido para manejar errores
+  onError?: (event: Event) => void;
 };
 
 export default function SmartImage({
@@ -38,16 +38,21 @@ export default function SmartImage({
     const img = imgRef.current;
     if (!img) return;
 
+    const handleLoad = () => {
+      console.log(`Imagen cargada: ${img.src}`);
+    };
     const handleError = (event: Event) => {
-      console.warn(`Error cargando imagen: ${src}`);
+      console.error(`Error cargando imagen: ${img.src}`);
       onError?.(event);
     };
 
+    img.addEventListener('load', handleLoad);
     img.addEventListener('error', handleError);
     return () => {
+      img.removeEventListener('load', handleLoad);
       img.removeEventListener('error', handleError);
     };
-  }, [src, onError]);
+  }, [src, dataSrc, onError]);
 
   return (
     <img
@@ -64,7 +69,6 @@ export default function SmartImage({
       draggable={draggable}
       sizes={finalSizes}
       srcSet={srcSet}
-      style={{ willChange: 'opacity', transition: 'opacity 0.2s' }}
     />
   );
 }

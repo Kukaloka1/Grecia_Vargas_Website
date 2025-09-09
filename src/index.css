@@ -32,8 +32,12 @@
 }
 
 html, body, #root { height: 100%; }
-/* Evita “doble smooth”: el scroll suave lo manejas en JS */
-html { scroll-behavior: auto; }
+
+/* Scroll nativo suave + padding por header fijo */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--header-h, 80px);
+}
 
 body {
   @apply bg-white text-neutral-900 antialiased;
@@ -63,14 +67,15 @@ body {
 .hero-bw { filter: grayscale(1) contrast(1.05); }
 .dish-circle { @apply absolute rounded-full shadow-2xl; width: 280px; height: 280px; right: -40px; bottom: -40px; }
 
-
-
 /* ===== Nav lateral ===== */
 .side-nav { @apply sticky top-0 h-[100svh] flex flex-col items-start gap-4 p-6; }
 .side-link { @apply text-sm opacity-80 hover:opacity-100 transition; }
 
 /* ===== Anclas sin saltos (offset header) ===== */
-:target { scroll-margin-top: var(--header-h); }
+/* Funciona con hash nativo, scrollIntoView y navegación manual */
+section[id] { scroll-margin-top: var(--header-h, 80px); }
+/* Refuerzo si el navegador usa :target internamente */
+:target { scroll-margin-top: var(--header-h, 80px); }
 
 /* ===== Header utilities ===== */
 .header-blur { @apply backdrop-blur bg-white/70; }
@@ -97,8 +102,6 @@ header.fixed {
   contain: paint; /* limita el repintado al header */
 }
 
-
-
 /* ===== Forzar tamaños de logo por breakpoints (si se usa ese alt) ===== */
 img[alt="Grecia Vargas"] { height: 120px; }
 @media (min-width: 640px) { img[alt="Grecia Vargas"] { height: 140px; } }
@@ -124,7 +127,6 @@ img[alt="Grecia Vargas"] { height: 120px; }
   transform: none !important;
   opacity: 1 !important;
 }
-
 /* Evita virtualización / apagado fuera de viewport */
 #gallery {
   content-visibility: visible !important;
@@ -134,12 +136,11 @@ img[alt="Grecia Vargas"] { height: 120px; }
   perspective: none !important;
 }
 
-
 /* Fuerza #home a 2 columnas reales (por si .hero-grid quedó en algún sitio) */
 #home { grid-template-columns: 1fr; }
 @media (min-width: 768px){  #home { grid-template-columns: 0.42fr 1fr; } }
 @media (min-width: 1024px){ #home { grid-template-columns: 0.38fr 1fr; } }
 @media (min-width: 1280px){ #home { grid-template-columns: 0.36fr 1fr; } }
 
-
-
+/* Asegura B/N en la foto del hero en todos los tamaños */
+.hero-bw { filter: grayscale(1) contrast(1.05) !important; }

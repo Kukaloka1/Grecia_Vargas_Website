@@ -11,7 +11,22 @@ export function useScrollSpy(ids: string[], offset = 0){
 
     if (sections.length === 0) return
 
-    // Observa SIN desmontar nada. Marca la sección más visible.
+    // Check inicial robusto al load para forzar active (arregla delay en refresh)
+    const checkInitial = () => {
+      const scrollPos = window.scrollY
+      const visible = sections.find(s => {
+        const rect = s.getBoundingClientRect()
+        const top = rect.top + scrollPos - offset
+        const bottom = rect.bottom + scrollPos - offset
+        return top <= 0 && bottom >= 0 // Sección visible en viewport
+      })
+      if (visible?.id) setActive(visible.id)
+    }
+
+    // Forzar check inicial después de mount
+    setTimeout(checkInitial, 100) // Aumentado a 100ms para estabilidad
+
+    // Observer para cambios en scroll
     const io = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -21,9 +36,8 @@ export function useScrollSpy(ids: string[], offset = 0){
       },
       {
         root: null,
-        // Compensa el header fijo para que el activo coincida con lo que ves
-        rootMargin: `-${Math.max(0, offset)}px 0px -55% 0px`,
-        threshold: [0.1, 0.25, 0.5, 0.75, 1],
+        rootMargin: `-${Math.max(0, offset)}px 0px -50% 0px`,
+        threshold: [0, 0.1, 0.5, 1], // Threshold simple para respuesta inmediata
       }
     )
 

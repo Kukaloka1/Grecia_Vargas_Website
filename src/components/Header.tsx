@@ -34,22 +34,62 @@ export default function Header(){
   const panelRef = useRef<HTMLDivElement>(null)
   const lang = useLang()
 
-  const active = useScrollSpy(
-    ['about','experiences','services','menus','gallery','contact'],
-    getHeaderOffset()
-  )
+  // Asegúrate de que estos IDs existan en el DOM
+  const SECTION_IDS = ['about','experiences','services','menus','gallery','contact'] as const
 
-  useEffect(()=>{
-    const onScroll = () => setScrolled(window.scrollY > 2)
+  const scrollSpyActive = useScrollSpy(SECTION_IDS as unknown as string[], getHeaderOffset())
+  const [active, setActive] = useState<string>(scrollSpyActive || '')
+
+  useEffect(() => { setActive(scrollSpyActive || '') }, [scrollSpyActive])
+
+  // ➊ Medir alto del header y sincronizar --header-h (sin optional chaining tras new)
+  useEffect(() => {
+    const header = document.querySelector('header')
+
+    const update = () => {
+      const h = header?.getBoundingClientRect().height ?? 80
+      document.documentElement.style.setProperty('--header-h', `${Math.round(h)}px`)
+    }
+
+    update()
+
+    let ro: ResizeObserver | null = null
+    if (typeof window !== 'undefined' && 'ResizeObserver' in window) {
+      ro = new ResizeObserver(() => update())
+      if (header) ro.observe(header)
+    }
+
+    window.addEventListener('resize', update)
+    return () => {
+      if (ro && header) ro.unobserve(header)
+      ro?.disconnect?.()
+      window.removeEventListener('resize', update)
+    }
+  }, [])
+
+  // ➋ Efecto de scroll para sombra/glow
+  useEffect(() => {
+    let ticking = false
+    const onScroll = () => {
+      if (ticking) return
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 2)
+        ticking = false
+      })
+      ticking = true
+    }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  },[])
+  }, [])
 
-  useEffect(()=>{
+  // ➌ Focus trap del panel móvil
+  useEffect(() => {
+    if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-      if (open && e.key === 'Tab' && panelRef.current){
+      if (e.key === 'Escape') { setOpen(false); return }
+      if (e.key === 'Tab') {
+        if (!panelRef.current) return
         const focusables = Array.from(panelRef.current.querySelectorAll(FOCUSABLE)) as HTMLElement[]
         if (focusables.length === 0) return
         const first = focusables[0], last = focusables[focusables.length - 1]
@@ -58,28 +98,28 @@ export default function Header(){
         else if (!e.shiftKey && act === last) { e.preventDefault(); first.focus() }
       }
     }
+    panelRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus()
     document.addEventListener('keydown', onKey)
-    return ()=>document.removeEventListener('keydown', onKey)
-  },[open])
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open])
 
-  useEffect(()=>{
+  // ➍ Bloquear scroll de fondo cuando el panel está abierto
+  useEffect(() => {
     document.body.classList.toggle('overflow-hidden', open)
-    if (open) {
-      setTimeout(()=>{
-        const first = panelRef.current?.querySelector(FOCUSABLE) as HTMLElement | null
-        first?.focus()
-      }, 0)
-    }
-  },[open])
+    return () => document.body.classList.remove('overflow-hidden')
+  }, [open])
 
-  useEffect(()=>{
-    const onPop = () => {
-      const h = window.location.hash
-      if (h) smoothScrollToId(h)
+  // ➎ Soporte hash: carga inicial con #, cambios manuales, back/forward
+  useEffect(() => {
+    const onHashOrPop = () => { if (window.location.hash) smoothScrollToId(window.location.hash) }
+    if (window.location.hash) setTimeout(() => smoothScrollToId(window.location.hash), 0)
+    window.addEventListener('hashchange', onHashOrPop)
+    window.addEventListener('popstate', onHashOrPop)
+    return () => {
+      window.removeEventListener('hashchange', onHashOrPop)
+      window.removeEventListener('popstate', onHashOrPop)
     }
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  },[])
+  }, [])
 
   const onHomeClick: React.MouseEventHandler<HTMLAnchorElement> = (e) => {
     e.preventDefault()
@@ -89,12 +129,19 @@ export default function Header(){
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  // ➏ Click en nav: si la sección aún no existe, cambiamos el hash y dejamos que el effect haga el scroll
   const onNavClick = (hash: string) => (e: React.MouseEvent) => {
     e.preventDefault()
     setOpen(false)
+    const id = hash.replace('#','')
+    const el = document.getElementById(id)
+    if (!el) {
+      if (window.location.hash !== hash) window.location.hash = hash
+      return
+    }
     smoothScrollToId(hash)
     const u = new URL(window.location.href)
-    history.pushState({}, '', u.pathname + hash)
+    if (u.hash !== hash) history.pushState({}, '', u.pathname + hash)
   }
 
   const NAV = [
@@ -113,8 +160,8 @@ export default function Header(){
         Skip to content
       </a>
 
-      {/* ===== HEADER (panel y overlay van FUERA) ===== */}
-      <header className={`fixed inset-x-0 top-0 z-[900] border-b border-neutral-800 backdrop-blur bg-neutral-950/70 text-white ${scrolled ? 'shadow-sm ring-1 ring-white/10' : ''}`}>
+      {/* ===== HEADER ===== */}
+      <header className={`fixed inset-x-0 top-0 z-[900] border-b border-neutral-800 bg-neutral-950/90 text-white ${scrolled ? 'shadow-sm ring-1 ring-white/10' : ''}`}>
         <div className="header-wrap">
           {/* Logo */}
           <a href="/" onClick={onHomeClick} aria-label="Grecia Vargas — Home" className="flex items-center min-w-0">
@@ -123,7 +170,8 @@ export default function Header(){
               alt="Grecia Vargas • Private Chef"
               className="h-[56px] w-auto md:h-[60px] lg:h-[64px] rounded-[2px]"
               loading="eager"
-              decoding="sync"
+              decoding="async"
+              fetchPriority="high"
             />
           </a>
 
@@ -150,6 +198,7 @@ export default function Header(){
             })}
             <select
               aria-label="Language"
+              title="Select language"
               className="bg-transparent text-sm text-white/90 hover:text-white outline-none"
               value={lang}
               onChange={(e)=>setLang(e.target.value as any)}
@@ -175,7 +224,7 @@ export default function Header(){
       {/* ===== Overlay y Panel FUERA del header ===== */}
       {open && (
         <div
-          className="fixed inset-0 z-[980] bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-[980] bg-black/60"
           onClick={()=>setOpen(false)}
           aria-hidden
         />
@@ -186,7 +235,7 @@ export default function Header(){
         ref={panelRef}
         role="dialog"
         aria-modal="true"
-        className={`fixed right-0 top-0 z-[990] h-[100svh] w-[min(22rem,90vw)] bg-neutral-950 text-white border-l border-neutral-800 p-6 pt-safe transition-transform duration-300 will-change-transform outline-none ${open ? 'translate-x-0' : 'translate-x-full'}`}
+        className={`fixed right-0 top-0 z-[990] h-[100svh] w-[min(22rem,90vw)] bg-neutral-950 text-white border-l border-neutral-800 p-6 pt-safe transition-transform duration-300 outline-none ${open ? 'translate-x-0' : 'translate-x-full'}`}
         tabIndex={-1}
       >
         <div className="flex items-center justify-between mb-6">
@@ -226,7 +275,7 @@ export default function Header(){
           </select>
         </div>
 
-        {/* CTAs alineadas y consistentes */}
+        {/* CTAs negro y blanco */}
         <a
           href="#contact"
           onClick={onNavClick('#contact')}
@@ -239,19 +288,18 @@ export default function Header(){
           href="https://wa.me/34611619968"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 btn btn-whatsapp w-full inline-flex items-center justify-center gap-2 text-center"
+          className="mt-3 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center"
           aria-label="WhatsApp"
         >
           <WhatsAppIcon className="h-5 w-5" />
           <span>{t('hero.cta.whatsapp', lang)}</span>
         </a>
 
-        {/* Instagram — pro, moderno y en armonía */}
         <a
           href="https://instagram.com/chefgreciavargas"
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 w-full inline-flex items-center justify-center gap-2 text-center text-white rounded-xl px-5 py-3 text-sm font-semibold transition bg-gradient-to-r from-[#F58529] via-[#DD2A7B] to-[#8134AF] hover:opacity-90"
+          className="mt-3 btn btn-primary w-full inline-flex items-center justify-center gap-2 text-center"
           aria-label="Instagram"
         >
           <Instagram className="h-5 w-5" />
@@ -261,5 +309,3 @@ export default function Header(){
     </>
   )
 }
-
-
