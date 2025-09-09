@@ -144,3 +144,45 @@ img[alt="Grecia Vargas"] { height: 120px; }
 
 /* Asegura B/N en la foto del hero en todos los tamaños */
 .hero-bw { filter: grayscale(1) contrast(1.05) !important; }
+
+/* ===== Gallery: anti-animaciones y aislamiento de repaints ===== */
+.no-aos-zone, .no-aos-zone * {
+  /* Desactiva cualquier anim/transition que venga de AOS o utilidades */
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Neutraliza clases típicas de AOS si aparecen por herencia */
+.no-aos-zone [class*="aos-"],
+.no-aos-zone .aos-init,
+.no-aos-zone .aos-animate {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* Aísla repaints de la galería para que el scroll fuera no la “mueva” */
+.gallery-grid {
+  contain: paint;              /* aísla el área de pintura */
+  will-change: auto;           /* evita reservar GPU permanente */
+}
+
+/* Las imágenes se quedan estáticas, sin fades ni transforms */
+.static-img,
+.no-aos-zone img[data-static] {
+  transform: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  backface-visibility: hidden; /* seguridad ante compositing raro */
+}
+
+/* Aísla repaints del grid de la galería */
+#gallery .grid { contain: paint; }
+
+/* Mata cualquier rastro de AOS dentro de gallery si llegara por herencia */
+#gallery [class*="aos-"],
+#gallery .aos-init,
+#gallery .aos-animate {
+  transform: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+}

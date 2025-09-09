@@ -14,6 +14,10 @@ type SmartImageProps = {
   responsive?: boolean;
   dataSrc?: string;
   onError?: (event: Event) => void;
+  /** 🔒 Si true, desactiva cualquier animación/transform y evita repaints al scrollear */
+  freeze?: boolean;
+  /** Permite pasar estilos inline sin perder el blindaje de freeze */
+  style?: React.CSSProperties;
 };
 
 export default function SmartImage({
@@ -29,6 +33,8 @@ export default function SmartImage({
   responsive = false,
   dataSrc,
   onError,
+  freeze = false,
+  style,
 }: SmartImageProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const srcSet = responsive ? makeSrcSet(src) : undefined;
@@ -38,11 +44,24 @@ export default function SmartImage({
     const img = imgRef.current;
     if (!img) return;
 
+    // 🔒 Blindaje anti-AOS/animaciones/transforms en este <img>
+    if (freeze) {
+      try {
+        img.removeAttribute('data-aos');
+        img.classList.remove('aos-init', 'aos-animate');
+        img.style.setProperty('transition', 'none', 'important');
+        img.style.setProperty('transform', 'none', 'important');
+        img.style.setProperty('opacity', '1', 'important');
+        img.style.setProperty('backface-visibility', 'hidden');
+        img.style.setProperty('will-change', 'auto');
+      } catch {}
+    }
+
     const handleLoad = () => {
-      console.log(`Imagen cargada: ${img.src}`);
+      // console.log(`Imagen cargada: ${img.currentSrc || img.src}`);
     };
     const handleError = (event: Event) => {
-      console.error(`Error cargando imagen: ${img.src}`);
+      console.error(`Error cargando imagen: ${img.currentSrc || img.src}`);
       onError?.(event);
     };
 
@@ -52,7 +71,7 @@ export default function SmartImage({
       img.removeEventListener('load', handleLoad);
       img.removeEventListener('error', handleError);
     };
-  }, [src, dataSrc, onError]);
+  }, [src, dataSrc, onError, freeze]);
 
   return (
     <img
@@ -69,6 +88,13 @@ export default function SmartImage({
       draggable={draggable}
       sizes={finalSizes}
       srcSet={srcSet}
+      // 🔒 Inline styles: prevalecen sobre cualquier CSS externo
+      style={{
+        ...(freeze
+          ? { transition: 'none', transform: 'none', opacity: 1, backfaceVisibility: 'hidden', willChange: 'auto' }
+          : {}),
+        ...style,
+      }}
     />
   );
 }
